@@ -1,5 +1,12 @@
 import type { Metadata } from "next";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Roboto } from "next/font/google";
+const roboto = Roboto({
+  subsets: ["latin"],
+  weight: ["100", "300", "400", "500", "700", "900"],
+  display: "swap",
+  variable: "--font-sans",
+});
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -13,8 +20,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body>
+    <html lang="en" suppressHydrationWarning className={roboto.variable}>
+      <body className="font-sans">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
