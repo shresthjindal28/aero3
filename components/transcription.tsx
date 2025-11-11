@@ -31,7 +31,7 @@ export default function DoctorInputPage() {
   return (
     <main className="bg-background text-foreground min-h-screen">
       {/* The modal is now just one clean line here */}
-      <PatientSessionModal isOpen={isModalOpen} onSessionStart={handleSessionStart} />
+      {/* <PatientSessionModal isOpen={isModalOpen} onSessionStart={handleSessionStart} /> */}
 
       <div className="max-w-5xl mx-auto p-4 md:p-8 space-y-6">
         <div className="flex justify-between items-center">

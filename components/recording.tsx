@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { motion } from "framer-motion";
+import RippleGrid from "./RippleGrid";
 
 type RecordingStatus = "idle" | "recording" | "paused" | "stopped";
 
@@ -20,8 +21,7 @@ type RecordingProps = {
 };
 
 export default function Recording({ onTranscribed, patientId }: RecordingProps) {
-  const [recordingStatus, setRecordingStatus] =
-    useState<RecordingStatus>("idle");
+  const [recordingStatus, setRecordingStatus] = useState<RecordingStatus>("idle");
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const [uploading, setUploading] = useState<boolean>(false);
@@ -89,8 +89,7 @@ export default function Recording({ onTranscribed, patientId }: RecordingProps) 
     const audioBase64 = await blobToDataUrl(audioBlob);
 
     setTimeout(async () => {
-      const simulated =
-        "This is the simulated transcribed text from the recorded audio.";
+      const simulated = "This is the simulated transcribed text from the recorded audio.";
       onTranscribed(simulated);
 
       if (patientId) {
@@ -113,8 +112,8 @@ export default function Recording({ onTranscribed, patientId }: RecordingProps) 
   };
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="gap-0!">
+      <CardHeader className="mb-0!">
         <CardTitle>Record Voice Notes</CardTitle>
         <CardDescription>
           Status: <span className="font-medium capitalize">{recordingStatus}</span>
@@ -122,45 +121,32 @@ export default function Recording({ onTranscribed, patientId }: RecordingProps) 
         </CardDescription>
       </CardHeader>
 
-      <CardContent>
-        <div className="flex flex-col items-center justify-center gap-6 min-h-[180px]">
-
-          <div className="relative w-36 h-36 flex items-center justify-center">
-
-            {(recordingStatus === "idle" || recordingStatus === "stopped") ? (
-              <Button
+      <CardContent className="mt-0!">
+        <div className="flex flex-col items-center justify-center relative gap-6 min-h-[180px]">
+          <div className="h-[45vh] w-full">
+            <RippleGrid
+              enableRainbow={false}
+              gridColor="#ffffff"
+              rippleIntensity={recordingStatus === "recording" ? 0.1 : 0}
+              gridSize={10}
+              gridThickness={15}
+              mouseInteraction={false}
+            />
+          </div>
+          <div className="absolute top-1/2 left-1/2 -translate-1/2 flex items-center justify-center">
+            {recordingStatus === "idle" || recordingStatus === "stopped" ? (
+              <button
                 onClick={startRecording}
-                className="w-full h-full rounded-full bg-green-600 hover:bg-green-700 text-primary-foreground text-lg font-semibold shadow-lg flex flex-col items-center justify-center transition-all duration-300"
+                className="border flex bg-secondary  hover:scale-105 duration-150 flex-col items-center justify-center gap-1 h-[100px] w-[100px] rounded-full"
               >
-                <Mic className="h-10 w-10" />
-                Start
-              </Button>
+                <Mic width={30} height={30} />
+                <p className="text-lg">Start</p>
+              </button>
             ) : (
-              <div className="relative flex items-center justify-center w-36 h-36">
-
-                {/* Outer dark atmospheric glow */}
-                <motion.div
-                  className="absolute rounded-full blur-xl"
-                  style={{
-                    width: "160px",
-                    height: "160px",
-                    background:
-                      "radial-gradient(circle, rgba(50,40,80,0.15) 0%, rgba(10,8,16,0.6) 70%)",
-                  }}
-                  animate={{
-                    scale: recordingStatus === "recording" ? [1, 1.25, 1] : 1,
-                    opacity: recordingStatus === "recording" ? [0.5, 1, 0.5] : 0.6,
-                  }}
-                  transition={{
-                    repeat: Infinity,
-                    duration: 2.4,
-                    ease: "easeInOut",
-                  }}
-                />
-
+              <div className="relative flex  items-center justify-center w-36 h-36">
                 {/* Smooth breathing wave ring */}
                 <motion.div
-                  className="absolute rounded-full border border-purple-300/25"
+                  className="absolute bg-white/10 hover:scale-105 rounded-full border"
                   style={{
                     width: "135px",
                     height: "135px",
@@ -175,22 +161,6 @@ export default function Recording({ onTranscribed, patientId }: RecordingProps) 
                     ease: "easeInOut",
                   }}
                 />
-
-                {/* Inner faint glow */}
-                <motion.div
-                  className="absolute rounded-full bg-purple-500/20 blur-lg"
-                  style={{ width: "95px", height: "95px" }}
-                  animate={{
-                    scale: recordingStatus === "recording" ? [1, 1.15, 1] : 1,
-                    opacity: recordingStatus === "recording" ? [0.6, 1, 0.6] : 0.8,
-                  }}
-                  transition={{
-                    repeat: Infinity,
-                    duration: 1.8,
-                    ease: "easeInOut",
-                  }}
-                />
-
                 {/* Mic icon small and centered */}
                 <Mic className="relative z-10 h-7 w-7 text-white opacity-90 drop-shadow-xl" />
               </div>
@@ -198,7 +168,7 @@ export default function Recording({ onTranscribed, patientId }: RecordingProps) 
           </div>
 
           {(recordingStatus === "recording" || recordingStatus === "paused") && (
-            <div className="flex gap-4">
+            <div className="flex gap-4 absolute bottom-0 right-0">
               {recordingStatus === "recording" ? (
                 <Button onClick={pauseRecording} variant="outline">
                   <Pause className="mr-2 h-4 w-4" /> Pause
@@ -214,7 +184,6 @@ export default function Recording({ onTranscribed, patientId }: RecordingProps) 
               </Button>
             </div>
           )}
-
         </div>
       </CardContent>
     </Card>
