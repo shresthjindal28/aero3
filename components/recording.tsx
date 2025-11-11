@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { Mic, Pause, Play, StopCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,16 +12,24 @@ import {
 } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import RippleGrid from "./RippleGrid";
-import { uploadAudioAction } from "@/app/actions/upload";
+import { type Socket } from "socket.io-client";
 
 type RecordingStatus = "idle" | "recording" | "paused" | "stopped";
+const CHUNKS_LENGTH = 10000;
 
 type RecordingProps = {
   onTranscribed: (text: string) => void;
   patientId?: string;
+  socket: Socket;
+  setTranscribedText: Dispatch<SetStateAction<string>>;
 };
 
-export default function Recording({ onTranscribed, patientId }: RecordingProps) {
+export default function Recording({
+  onTranscribed,
+  patientId,
+  socket,
+  setTranscribedText,
+}: RecordingProps) {
   const [recordingStatus, setRecordingStatus] = useState<RecordingStatus>("idle");
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -34,20 +42,36 @@ export default function Recording({ onTranscribed, patientId }: RecordingProps) 
       mediaRecorderRef.current = mediaRecorder;
 
       setAudioChunks([]);
-      mediaRecorder.start();
+      mediaRecorder.start(CHUNKS_LENGTH);
       setRecordingStatus("recording");
 
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
+      mediaRecorder.ondataavailable = async (event: BlobEvent) => {
+        // send data only when recording not when paused
+        if (
+          event.data.size > 0 &&
+          mediaRecorderRef.current &&
+          mediaRecorderRef.current.state === "recording"
+        ) {
+          console.log(mediaRecorderRef.current.state);
           setAudioChunks((prev) => [...prev, event.data]);
+          console.log("streaming audio to backend..");
+          socket.emit("audio-channel-DOCT-000001", await event.data.arrayBuffer());
         }
       };
 
       mediaRecorder.onstop = () => {
+        // this will have the full audio of the chunks
         const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
-        handleTranscription(audioBlob);
+        // write code to convert into mp3 and upload to cloudinary
+        // handleTranscription(audioBlob);
         stream.getTracks().forEach((track) => track.stop());
         setRecordingStatus("stopped");
+        console.log("stopped recording");
+
+        if (mediaRecorderRef.current) {
+          mediaRecorderRef.current.stop();
+        }
+        socket.emit("audio-channel-commands-DOCT-000001", "stop");
       };
     } catch {
       alert("Microphone access was denied.");
@@ -55,7 +79,7 @@ export default function Recording({ onTranscribed, patientId }: RecordingProps) 
   };
 
   const pauseRecording = () => {
-    if (mediaRecorderRef.current && recordingStatus === "recording") {
+    if (mediaRecorderRef.current) {
       mediaRecorderRef.current.pause();
       setRecordingStatus("paused");
     }
@@ -69,13 +93,40 @@ export default function Recording({ onTranscribed, patientId }: RecordingProps) 
   };
 
   const stopRecording = () => {
-    if (
-      mediaRecorderRef.current &&
-      (recordingStatus === "recording" || recordingStatus === "paused")
-    ) {
+    if (mediaRecorderRef.current) {
+      console.log("stopped recording");
+      socket.emit("audio-channel-commands-DOCT-000001", "stop");
       mediaRecorderRef.current.stop();
     }
   };
+
+  useEffect(() => {
+    socket.on("transcripted-data-DOCT-000001", (data) => {
+      console.log("transcripted-data", data);
+      // try {
+      //   const t = data?.transcription?.text as string | undefined;
+      //   const lc = (data?.transcription?.language_code as string | null) ?? null;
+
+      //   if (typeof t === "string" && t.length) {
+      //     setTranscribedText((prev) => {
+      //       if (!prev) return t;
+      //       const nl = prev.endsWith("\n") ? "" : "\n";
+      //       return prev + nl + t;
+      //     });
+      //   }
+
+      //   // setLanguageCode(lc);
+      //   // setProcessing(false);
+      //   // setError(null);
+      // } catch (e) {
+      //   console.error(e);
+      // }
+    });
+
+    return () => {
+      socket.off("transcripted-data");
+    };
+  }, []);
 
   const blobToDataUrl = (blob: Blob): Promise<string> =>
     new Promise((resolve, reject) => {
@@ -87,26 +138,28 @@ export default function Recording({ onTranscribed, patientId }: RecordingProps) 
 
   const handleTranscription = async (audioBlob: Blob) => {
     onTranscribed("Transcribing...");
-    const audioBase64 = await blobToDataUrl(audioBlob);
+    // const audioBase64 = await blobToDataUrl(audioBlob);
 
-    setTimeout(async () => {
-      const simulated = "This is the simulated transcribed text from the recorded audio.";
-      onTranscribed(simulated);
+    // setTimeout(async () => {
+    //   const simulated = "This is the simulated transcribed text from the recorded audio.";
+    //   onTranscribed(simulated);
 
-      if (patientId) {
-        try {
-          setUploading(true);
-          const file = new File([audioBlob], "recording.wav", { type: "audio/wav" });
-          const fd = new FormData();
-          fd.append("patientId", patientId);
-          fd.append("file", file);
-          fd.append("transcript", simulated);
-          await uploadAudioAction(fd);
-        } finally {
-          setUploading(false);
-        }
-      }
-    }, 2000);
+    //   if (patientId) {
+    //     try {
+    //       setUploading(true);
+    //       const file = new File([audioBlob], "recording.wav", { type: "audio/wav" });
+    //       console.log(file);
+
+    //       const fd = new FormData();
+    //       fd.append("patientId", patientId);
+    //       fd.append("file", file);
+    //       fd.append("transcript", simulated);
+    //       await uploadAudioAction(fd);
+    //     } finally {
+    //       setUploading(false);
+    //     }
+    //   }
+    // }, 2000);
   };
 
   return (

@@ -8,21 +8,19 @@ type Props = {
 const TscriptionContent = ({ transcribedText }: Props) => {
   return (
     <div>
-      <div className="space-y-4">
-        <Label htmlFor="transcription" className="text-lg font-semibold">
-          Transcription
-        </Label>
+      <div className="space-y-2 h-[60vh]">
+        <Label htmlFor="transcription">Transcription</Label>
         <Textarea
           id="transcription"
           value={transcribedText}
           readOnly
           placeholder="Your recorded voice will appear here as text after stopping..."
           rows={15}
-          className="text-base"
+          className="text-base rounded-(--radius) w-full h-full"
         />
       </div>
     </div>
   );
 };
 
-export default TscriptionContent
+export default TscriptionContent;
