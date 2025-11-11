@@ -13,14 +13,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 // Import the Tabs components
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "./ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-
 
 export interface PatientData {
   id: string;
@@ -40,7 +34,7 @@ export default function PatientSessionModal({
 }: PatientSessionModalProps) {
   const [modalPatientId, setModalPatientId] = useState("");
   const [modalPatientName, setModalPatientName] = useState("");
-  const [modalPatientPhone, setModalPatientPhone] =useState("");
+  const [modalPatientPhone, setModalPatientPhone] = useState("");
   const [modalPatientAddress, setModalPatientAddress] = useState("");
   const [loadError, setLoadError] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -55,7 +49,9 @@ export default function PatientSessionModal({
     if (!modalPatientId.trim()) return;
     try {
       setIsLoading(true);
-      const res = await fetch(`/api/patient?id=${encodeURIComponent(modalPatientId.trim())}`);
+      const res = await fetch(
+        `/api/patient?id=${encodeURIComponent(modalPatientId.trim())}`
+      );
       if (!res.ok) {
         if (res.status === 404) {
           setLoadError("No patient found. Please create a new user.");
@@ -66,7 +62,12 @@ export default function PatientSessionModal({
       }
       const data = await res.json();
       const patient = data.patient;
-      onSessionStart({ id: patient.user_id, name: patient.user_name, phone: patient.user_mobile ?? undefined, address: patient.address ?? undefined });
+      onSessionStart({
+        id: patient.user_id,
+        name: patient.user_name,
+        phone: patient.user_mobile ?? undefined,
+        address: patient.address ?? undefined,
+      });
     } catch (e) {
       setLoadError("Network error. Please retry.");
     } finally {
@@ -85,7 +86,11 @@ export default function PatientSessionModal({
       const res = await fetch(`/api/patient`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: modalPatientName.trim(), phone: modalPatientPhone.trim(), address: modalPatientAddress.trim() || undefined }),
+        body: JSON.stringify({
+          name: modalPatientName.trim(),
+          phone: modalPatientPhone.trim(),
+          address: modalPatientAddress.trim() || undefined,
+        }),
       });
       if (!res.ok) {
         // Stay on modal and show no toast; parent will handle
@@ -93,7 +98,12 @@ export default function PatientSessionModal({
       }
       const data = await res.json();
       const patient = data.patient;
-      onSessionStart({ id: patient.user_id, name: patient.user_name, phone: patient.user_mobile ?? undefined, address: patient.address ?? undefined });
+      onSessionStart({
+        id: patient.user_id,
+        name: patient.user_name,
+        phone: patient.user_mobile ?? undefined,
+        address: patient.address ?? undefined,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -184,7 +194,7 @@ export default function PatientSessionModal({
               disabled={
                 !modalPatientName.trim() || !modalPatientPhone.trim() || isLoading
               }
-className="w-full"
+              className="w-full"
             >
               {isLoading ? "Registering..." : "Register New Patient"}
             </Button>
