@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// Upload audio to Cloudinary and store URL/transcript on User (optional)
+// Store transcript on User. Audio upload is disabled (Cloudinary removed).
 export async function POST(req: Request) {
   try {
     const { patientId, audioBase64, transcript } = (await req.json()) as {
@@ -14,29 +14,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "patientId is required" }, { status: 400 });
     }
 
-    let audioUrl: string | null = null;
-
-    const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
-    const uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET;
-
-    if (audioBase64 && cloudName && uploadPreset) {
-      const formData = new FormData();
-      formData.append("file", typeof audioBase64 === "string" ? audioBase64 : String(audioBase64));
-      formData.append("upload_preset", uploadPreset);
-      formData.append("folder", "patient-audio");
-
-      const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`, {
-        method: "POST",
-        body: formData,
-      });
-
-      if (uploadRes.ok) {
-        const payload = await uploadRes.json();
-        audioUrl = payload.secure_url ?? payload.url ?? null;
-      } else {
-        console.warn("Cloudinary upload failed", await uploadRes.text());
-      }
-    }
+    // Audio upload removed; do not persist external audio URL.
+    // If needed in the future, implement an alternative storage solution.
+    const audioUrl: string | null = null;
 
     const updated = await prisma.user.update({
       where: { user_id: patientId },

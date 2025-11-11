@@ -40,8 +40,4 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 - Patient creation and lookup are available under `/api/patient`.
   - `POST /api/patient` with `{ name, phone?, address? }` creates and stores a patient.
   - `GET /api/patient?id=PAT-XXXXXX` verifies an existing patient ID.
-- Recorded audio can optionally upload to Cloudinary and persist on the patient record via `/api/audio`.
-  - Configure the following in `.env.local` to enable uploads:
-    - `CLOUDINARY_CLOUD_NAME=your_cloud_name`
-    - `CLOUDINARY_UPLOAD_PRESET=your_unsigned_preset`
-  - If these are not set, audio uploads are skipped and the app continues gracefully.
+- Recorded audio is not uploaded to external storage. `/api/audio` stores transcripts on the patient record and leaves `audio_url` unset.

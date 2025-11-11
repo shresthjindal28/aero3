@@ -4,6 +4,7 @@ import { useState, ChangeEvent } from "react";
 import { Stethoscope } from "lucide-react";
 import PatientSessionModal, { PatientData } from "@/components/PatientSessionModal"; // Import the new modal
 import UploadReports from "@/components/Upload-reports";
+import { uploadReportAction } from "@/app/actions/upload";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import TscriptionContent from "./tscription-content";
@@ -15,6 +16,7 @@ export default function DoctorInputPage() {
   const [patientName, setPatientName] = useState("");
   const [transcribedText, setTranscribedText] = useState("");
   const [reportFile, setReportFile] = useState<File | null>(null);
+  const [reportUploading, setReportUploading] = useState<boolean>(false);
 
   const handleSessionStart = (patient: PatientData) => {
     setPatientName(patient.name);
@@ -22,16 +24,28 @@ export default function DoctorInputPage() {
     setIsModalOpen(false);
   };
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setReportFile(e.target.files[0]);
+      const file = e.target.files[0];
+      setReportFile(file);
+      if (patientNumber) {
+        try {
+          setReportUploading(true);
+          const fd = new FormData();
+          fd.append("patientId", patientNumber);
+          fd.append("file", file);
+          await uploadReportAction(fd);
+        } finally {
+          setReportUploading(false);
+        }
+      }
     }
   };
 
   return (
     <main className="bg-background text-foreground min-h-screen">
       {/* The modal is now just one clean line here */}
-      {/* <PatientSessionModal isOpen={isModalOpen} onSessionStart={handleSessionStart} /> */}
+      <PatientSessionModal isOpen={isModalOpen} onSessionStart={handleSessionStart} />
 
       <div className="max-w-5xl mx-auto p-4 md:p-8 space-y-6">
         <div className="flex justify-between items-center">
@@ -67,6 +81,9 @@ export default function DoctorInputPage() {
 
           <div className="space-y-6">
             <UploadReports reportFile={reportFile} onFileChange={handleFileChange} />
+            {reportUploading && (
+              <p className="text-sm text-muted-foreground">Uploading report…</p>
+            )}
 
             <Card>
               <CardHeader>

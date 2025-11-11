@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import RippleGrid from "./RippleGrid";
+import { uploadAudioAction } from "@/app/actions/upload";
 
 type RecordingStatus = "idle" | "recording" | "paused" | "stopped";
 
@@ -95,15 +96,12 @@ export default function Recording({ onTranscribed, patientId }: RecordingProps) 
       if (patientId) {
         try {
           setUploading(true);
-          await fetch("/api/audio", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              patientId,
-              audioBase64,
-              transcript: simulated,
-            }),
-          });
+          const file = new File([audioBlob], "recording.wav", { type: "audio/wav" });
+          const fd = new FormData();
+          fd.append("patientId", patientId);
+          fd.append("file", file);
+          fd.append("transcript", simulated);
+          await uploadAudioAction(fd);
         } finally {
           setUploading(false);
         }
