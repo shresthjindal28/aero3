@@ -34,3 +34,14 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Patient & Audio Features
+
+- Patient creation and lookup are available under `/api/patient`.
+  - `POST /api/patient` with `{ name, phone?, address? }` creates and stores a patient.
+  - `GET /api/patient?id=PAT-XXXXXX` verifies an existing patient ID.
+- Recorded audio can optionally upload to Cloudinary and persist on the patient record via `/api/audio`.
+  - Configure the following in `.env.local` to enable uploads:
+    - `CLOUDINARY_CLOUD_NAME=your_cloud_name`
+    - `CLOUDINARY_UPLOAD_PRESET=your_unsigned_preset`
+  - If these are not set, audio uploads are skipped and the app continues gracefully.

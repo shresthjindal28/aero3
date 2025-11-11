@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  user_id           String   @id
+  user_name         String
+  transcripted_data String?
+  audio_url         String?
+  treated_by        String?
+  hospital_id       String?
+  user_mobile       String?
+  address           String?
+  created_at        DateTime @default(now())
+
+  // Relation to Hospital₹₹
+  hospital Hospital? @relation(fields: [hospital_id], references: [hospital_id])
+
+  // Relations
+  doctorInteractions Doctor[]  @relation("PatientDoctor")
+  interactions       Interaction[]
+  reports            Report[]  @relation("UserReports")
+  soapNotes          SoapNote[] @relation("UserSoap")
+}
+
+model Doctor {
+  doctor_id         String   @id
+  doctor_name       String
+  hospital_id       String?
+  phone_number      String?
+  certificate_url   String?
+  profile_image_url String?
+  legal_id          String?
+  created_at        DateTime @default(now())
+
+  // Relation to patient (one doctor can be linked to one patient)
+  patient_id String?
+  patient    User?    @relation("PatientDoctor", fields: [patient_id], references: [user_id])
+
+  // Relation to Hospital
+  hospital Hospital? @relation(fields: [hospital_id], references: [hospital_id])
+
+  // Optional: store per-interaction fields in separate table
+  interactions Interaction[] @relation("DoctorInteractions")
+}
+
+model Hospital {
+  hospital_id   String @id
+  hospital_name String
+  address       String?
+  phone_number  String?
+  created_at    DateTime @default(now())
+
+  users   User[]
+  doctors Doctor[]
+}
+
+model Interaction {
+  id                String   @id
+  doctor_id         String
+  patient_id        String
+  audio_url         String?
+  transcripted_data String?
+  soap_notes        String?
+  reports_url       String?
+  created_at        DateTime @default(now())
+
+  doctor Doctor @relation(fields: [doctor_id], references: [doctor_id], name: "DoctorInteractions")
+  patient User   @relation(fields: [patient_id], references: [user_id])
+}
+
+model Report {
+  id         String   @id
+  userId     String
+  file_url   String
+  note       String?
+  created_at DateTime @default(now())
+
+  user User @relation("UserReports", fields: [userId], references: [user_id])
+}
+
+model SoapNote {
+  id         String   @id
+  userId     String
+  note       String
+  created_at DateTime @default(now())
+
+  user User @relation("UserSoap", fields: [userId], references: [user_id])
+}
