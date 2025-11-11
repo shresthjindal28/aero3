@@ -3,7 +3,13 @@
 import { useRef, useState } from "react";
 import { Mic, Pause, Play, StopCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 type RecordingStatus = "idle" | "recording" | "paused" | "stopped";
 
@@ -82,7 +88,8 @@ export default function Recording({ onTranscribed, patientId }: RecordingProps) 
     onTranscribed("Transcribing... (Processing audio)");
     const audioBase64 = await blobToDataUrl(audioBlob);
     setTimeout(async () => {
-      const simulated = "This is the simulated transcribed text from the recorded audio. The audio blob was successfully created.";
+      const simulated =
+        "This is the simulated transcribed text from the recorded audio. The audio blob was successfully created.";
       onTranscribed(simulated);
 
       // Optionally upload to server when a patient is selected
@@ -110,32 +117,30 @@ export default function Recording({ onTranscribed, patientId }: RecordingProps) 
         <CardDescription>
           Status: <span className="font-medium capitalize">{recordingStatus}</span>
           {patientId && (
-            <span className="ml-2 text-muted-foreground">{uploading ? "(Uploading…)" : ""}</span>
+            <span className="ml-2 text-muted-foreground">
+              {uploading ? "(Uploading…)" : ""}
+            </span>
           )}
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            onClick={startRecording}
-            disabled={recordingStatus === "recording"}
-            className="bg-emerald-600 hover:bg-emerald-700 text-primary-foreground"
-          >
-            <Mic className="mr-2 h-4 w-4" /> Start
+        <div className="flex flex-wrap gap-4">
+          <Button onClick={startRecording} disabled={recordingStatus === "recording"}>
+            <Mic className="h-4 w-4" /> Start
           </Button>
           <Button
             onClick={pauseRecording}
             disabled={recordingStatus !== "recording"}
             variant="outline"
           >
-            <Pause className="mr-2 h-4 w-4" /> Pause
+            <Pause className="h-4 w-4" /> Pause
           </Button>
           <Button
             onClick={resumeRecording}
             disabled={recordingStatus !== "paused"}
             variant="outline"
           >
-            <Play className="mr-2 h-4 w-4" /> Resume
+            <Play className="h-4 w-4" /> Resume
           </Button>
           <Button
             onClick={stopRecording}

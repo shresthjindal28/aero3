@@ -2,16 +2,9 @@
 
 import { useState, ChangeEvent } from "react";
 import { Stethoscope } from "lucide-react";
-import PatientSessionModal, {
-  PatientData,
-} from "@/components/PatientSessionModal"; // Import the new modal
+import PatientSessionModal, { PatientData } from "@/components/PatientSessionModal"; // Import the new modal
 import UploadReports from "@/components/Upload-reports";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import TscriptionContent from "./tscription-content";
 import Recording from "@/components/recording";
@@ -38,10 +31,7 @@ export default function DoctorInputPage() {
   return (
     <main className="bg-background text-foreground min-h-screen">
       {/* The modal is now just one clean line here */}
-      <PatientSessionModal
-        isOpen={isModalOpen}
-        onSessionStart={handleSessionStart}
-      />
+      <PatientSessionModal isOpen={isModalOpen} onSessionStart={handleSessionStart} />
 
       <div className="max-w-5xl mx-auto p-4 md:p-8 space-y-6">
         <div className="flex justify-between items-center">
@@ -67,16 +57,16 @@ export default function DoctorInputPage() {
           </Card>
         )}
 
-        <Recording patientId={patientNumber || undefined} onTranscribed={setTranscribedText} />
+        <Recording
+          patientId={patientNumber || undefined}
+          onTranscribed={setTranscribedText}
+        />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <TscriptionContent transcribedText={transcribedText} />
 
           <div className="space-y-6">
-            <UploadReports
-              reportFile={reportFile}
-              onFileChange={handleFileChange}
-            />
+            <UploadReports reportFile={reportFile} onFileChange={handleFileChange} />
 
             <Card>
               <CardHeader>
@@ -85,9 +75,8 @@ export default function DoctorInputPage() {
               <CardContent>
                 <div className="border border-dashed border-muted-foreground rounded-md p-4 min-h-[100px]">
                   <p className="text-muted-foreground">
-                    As you suggested, this area would load a new component
-                    (e.g., `{`<PdfPreviewComponent data={...} />`}`) to render
-                    the generated PDF.
+                    As you suggested, this area would load a new component (e.g., `
+                    {`<PdfPreviewComponent data={...} />`}`) to render the generated PDF.
                   </p>
                 </div>
               </CardContent>
