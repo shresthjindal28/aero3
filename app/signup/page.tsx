@@ -16,6 +16,9 @@ export default function SignUpPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [certificateFile, setCertificateFile] = useState<File | null>(null);
+  const [idDocumentFile, setIdDocumentFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pendingVerification, setPendingVerification] = useState(false);
@@ -46,6 +49,30 @@ export default function SignUpPage() {
     return "Sign up failed";
   }
 
+  async function registerDoctor() {
+    // Upload doctor certificate + ID and store phone number via server route
+    if (!certificateFile || !idDocumentFile) {
+      throw new Error("Please upload both certificate and government ID.");
+    }
+    if (!phoneNumber) {
+      throw new Error("Please provide a mobile number.");
+    }
+    const form = new FormData();
+    form.set("phone_number", phoneNumber);
+    form.set("certificate", certificateFile);
+    form.set("id_document", idDocumentFile);
+
+    const res = await fetch("/api/doctor/register", {
+      method: "POST",
+      body: form,
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data?.error || "Failed to register doctor details.");
+    }
+    return res.json();
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!isLoaded) return;
@@ -66,6 +93,8 @@ export default function SignUpPage() {
       if (res.status === "complete" && res.createdSessionId) {
         // Sometimes sign up completes immediately
         await setActive({ session: res.createdSessionId });
+        // Register doctor details server-side before navigating
+        await registerDoctor();
         router.push("/dashboard");
       } else {
         // Show the OTP form
@@ -87,6 +116,8 @@ export default function SignUpPage() {
       const attempt = await signUp.attemptEmailAddressVerification({ code: verificationCode });
       if (attempt.status === "complete" && attempt.createdSessionId) {
         await setActive({ session: attempt.createdSessionId });
+        // Register doctor details server-side before navigating
+        await registerDoctor();
         router.push("/dashboard");
       } else {
         setError("Verification incomplete. Please check the code and try again.");
@@ -155,6 +186,21 @@ export default function SignUpPage() {
                   <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required />
                   {/* Optional helper to avoid common password issues */}
                   <p className="text-xs text-muted-foreground">Use a strong, unique password. Avoid commonly used or compromised passwords.</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Mobile number</Label>
+                  <Input id="phone" type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} placeholder="e.g. +1 555-123-4567" required />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="certificate">Upload doctor certificate</Label>
+                  <Input id="certificate" type="file" accept="image/*,application/pdf" onChange={(e) => setCertificateFile(e.target.files?.[0] ?? null)} required />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="idDoc">Upload government ID</Label>
+                  <Input id="idDoc" type="file" accept="image/*,application/pdf" onChange={(e) => setIdDocumentFile(e.target.files?.[0] ?? null)} required />
                 </div>
 
                 {/* CAPTCHA placeholder required for Clerk Smart CAPTCHA in custom flows */}

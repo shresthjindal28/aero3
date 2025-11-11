@@ -17,7 +17,7 @@ import { SignOutButton } from "@clerk/nextjs";
 
 const page = () => {
   return (
-    <div className="max-w-3xl mx-auto p-4 md:p-8">
+    <div className="min-w-[80vw] mx-auto p-4 md:p-8 flex items-center flex-col justify-between">
       <Header content={"Settings"} className="text-3xl font-bold mb-8" />
 
       <div className="space-y-8">
@@ -113,7 +113,7 @@ const page = () => {
                 Sign out of your account safely.
               </p>
             </div>
-            <SignOutButton redirectUrl="/sign-in">
+            <SignOutButton redirectUrl="/signin">
               <Button variant="outline">Log out</Button>
             </SignOutButton>
           </CardContent>

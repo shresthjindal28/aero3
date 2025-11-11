@@ -34,8 +34,8 @@ model Doctor {
   hospital_id       String?
   phone_number      String?
   certificate_url   String?
+  id_document_url   String?
   profile_image_url String?
-  legal_id          String?
   created_at        DateTime @default(now())
 
   // Relation to patient (one doctor can be linked to one patient)
