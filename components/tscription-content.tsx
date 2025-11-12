@@ -1,5 +1,4 @@
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { useEffect, useState } from "react";
 import { socket } from "@/lib/socket";
 
@@ -7,25 +6,24 @@ const TscriptionContent = ({ patientId }: { patientId: string }) => {
   const [transcribedText, setTranscribedText] = useState("");
 
   useEffect(() => {
-    const handleTranscriptChunk = (data: {
-      transcription?: { text?: string };
-    }) => {
-      // console.log("transcripted-data", data);
-      const chunk =
-        typeof data?.transcription?.text === "string"
-          ? data.transcription.text
-          : "";
-      if (!chunk) return;
+    const eventName = "transcripted-data-DOCT-000001";
 
+    const handleTranscriptChunk = (chunk: string) => {
+      if (!chunk) return;
       setTranscribedText((prev) => (prev ? `${prev} ${chunk}` : chunk));
     };
-    socket.on("transcripted-data-DOCT-000001", (data) => {
-      // console.log("transcripted-data", data);
-      handleTranscriptChunk(data);
+
+    socket.on(eventName, (data) => {
+      console.log("Received transcript chunk:", data);
+      if (typeof data === "string") {
+        handleTranscriptChunk(data);
+      } else if (data?.transcript) {
+        handleTranscriptChunk(data.transcript);
+      }
     });
 
     return () => {
-      socket.off("transcripted-data");
+      socket.off(eventName);
     };
   }, []);
 
@@ -57,7 +55,7 @@ const TscriptionContent = ({ patientId }: { patientId: string }) => {
   return (
     <div>
       <div className="space-y-2 h-[60vh]">
-        <Label htmlFor="transcription">Transcription</Label>
+        {/* <Label htmlFor="transcription">Transcription</Label> */}
         <Textarea
           id="transcription"
           value={transcribedText}

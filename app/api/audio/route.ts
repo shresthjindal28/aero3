@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// Store transcript on User. Audio upload is disabled (Cloudinary removed).
+// Store transcript on User. Audio upload via Cloudinary is currently disabled.
 export async function POST(req: Request) {
   try {
     const { patientId, audioBase64, transcript } = (await req.json()) as {
