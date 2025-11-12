@@ -5,13 +5,13 @@ import { Stethoscope } from "lucide-react";
 import PatientSessionModal, { PatientData } from "@/components/PatientSessionModal"; // Import the new modal
 import UploadReports from "@/components/Upload-reports";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { socket } from "@/lib/socket";
 import TscriptionContent from "./tscription-content";
 import Recording from "@/components/recording";
+import { type Socket } from "socket.io-client";
 
 const CHUNKS_LENGTH = 10000;
 
-export default function DoctorInputPage() {
+export default function DoctorInputPage({ socket }: { socket: Socket }) {
   const [isModalOpen, setIsModalOpen] = useState(true);
   const [patientNumber, setPatientNumber] = useState("");
   const [patientName, setPatientName] = useState("");
@@ -33,22 +33,10 @@ export default function DoctorInputPage() {
     }
   };
 
-  useEffect(() => {
-    socket.on("connect", () => {
-      console.log("connected");
-    });
-
-    return () => {
-      socket.off("connect");
-
-      socket.disconnect();
-    };
-  }, []);
-
   return (
     <main className="bg-background text-foreground min-h-screen">
       {/* The modal is now just one clean line here */}
-      <PatientSessionModal isOpen={isModalOpen} onSessionStart={handleSessionStart} />
+      {/* <PatientSessionModal isOpen={isModalOpen} onSessionStart={handleSessionStart} /> */}
 
       <div className="max-w-5xl mx-auto p-4 md:p-8 space-y-6">
         <div className="flex justify-between items-center">

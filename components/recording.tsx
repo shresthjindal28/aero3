@@ -47,12 +47,7 @@ export default function Recording({
 
       mediaRecorder.ondataavailable = async (event: BlobEvent) => {
         // send data only when recording not when paused
-        if (
-          event.data.size > 0 &&
-          mediaRecorderRef.current &&
-          mediaRecorderRef.current.state === "recording"
-        ) {
-          console.log(mediaRecorderRef.current.state);
+        if (event.data.size > 0) {
           setAudioChunks((prev) => [...prev, event.data]);
           console.log("streaming audio to backend..");
           socket.emit("audio-channel-DOCT-000001", await event.data.arrayBuffer());
@@ -60,6 +55,7 @@ export default function Recording({
       };
 
       mediaRecorder.onstop = () => {
+        socket.emit("audio-channel-commands-DOCT-000001", "stop");
         // this will have the full audio of the chunks
         const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
         // write code to convert into mp3 and upload to cloudinary
@@ -71,7 +67,6 @@ export default function Recording({
         if (mediaRecorderRef.current) {
           mediaRecorderRef.current.stop();
         }
-        socket.emit("audio-channel-commands-DOCT-000001", "stop");
       };
     } catch {
       alert("Microphone access was denied.");
@@ -94,8 +89,6 @@ export default function Recording({
 
   const stopRecording = () => {
     if (mediaRecorderRef.current) {
-      console.log("stopped recording");
-      socket.emit("audio-channel-commands-DOCT-000001", "stop");
       mediaRecorderRef.current.stop();
     }
   };
