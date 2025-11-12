@@ -1,3 +1,5 @@
+"use client";
+
 import Transcription from "@/components/transcription";
 import React, { useEffect } from "react";
 import { socket } from "@/lib/socket";

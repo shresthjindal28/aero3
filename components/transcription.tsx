@@ -36,7 +36,7 @@ export default function DoctorInputPage({ socket }: { socket: Socket }) {
   return (
     <main className="bg-background text-foreground min-h-screen">
       {/* The modal is now just one clean line here */}
-      {/* <PatientSessionModal isOpen={isModalOpen} onSessionStart={handleSessionStart} /> */}
+      <PatientSessionModal isOpen={isModalOpen} onSessionStart={handleSessionStart} />
 
       <div className="max-w-5xl mx-auto p-4 md:p-8 space-y-6">
         <div className="flex justify-between items-center">
@@ -70,7 +70,7 @@ export default function DoctorInputPage({ socket }: { socket: Socket }) {
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <TscriptionContent transcribedText={transcribedText} />
+          <TscriptionContent patientId={patientNumber} />
 
           <div className="space-y-6">
             <UploadReports reportFile={reportFile} onFileChange={handleFileChange} />

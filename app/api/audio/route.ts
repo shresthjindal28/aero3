@@ -15,15 +15,28 @@ export async function POST(req: Request) {
     }
 
     // Audio upload removed; do not persist external audio URL.
-    // If needed in the future, implement an alternative storage solution.
     const audioUrl: string | null = null;
+
+    // Fetch existing transcript and concatenate with the new one (if provided)
+    const existing = await prisma.user.findUnique({
+      where: { user_id: patientId },
+      select: { transcripted_data: true },
+    });
+
+    // Build update payload; only update transcript if a new one was provided
+    const dataToUpdate: { audio_url: string | null; transcripted_data?: string | null } = {
+      audio_url: audioUrl,
+    };
+
+    if (typeof transcript === "string" && transcript.trim().length > 0) {
+      const previous = existing?.transcripted_data ?? "";
+      const combinedTranscript = previous ? `${previous}\n${transcript}` : transcript;
+      dataToUpdate.transcripted_data = combinedTranscript;
+    }
 
     const updated = await prisma.user.update({
       where: { user_id: patientId },
-      data: {
-        audio_url: audioUrl,
-        transcripted_data: transcript ?? null,
-      },
+      data: dataToUpdate,
     });
 
     return NextResponse.json({ success: true, patient: updated, audioUrl }, { status: 200 });

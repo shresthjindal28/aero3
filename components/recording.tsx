@@ -93,33 +93,7 @@ export default function Recording({
     }
   };
 
-  useEffect(() => {
-    socket.on("transcripted-data-DOCT-000001", (data) => {
-      console.log("transcripted-data", data);
-      // try {
-      //   const t = data?.transcription?.text as string | undefined;
-      //   const lc = (data?.transcription?.language_code as string | null) ?? null;
-
-      //   if (typeof t === "string" && t.length) {
-      //     setTranscribedText((prev) => {
-      //       if (!prev) return t;
-      //       const nl = prev.endsWith("\n") ? "" : "\n";
-      //       return prev + nl + t;
-      //     });
-      //   }
-
-      //   // setLanguageCode(lc);
-      //   // setProcessing(false);
-      //   // setError(null);
-      // } catch (e) {
-      //   console.error(e);
-      // }
-    });
-
-    return () => {
-      socket.off("transcripted-data");
-    };
-  }, []);
+  
 
   const blobToDataUrl = (blob: Blob): Promise<string> =>
     new Promise((resolve, reject) => {
