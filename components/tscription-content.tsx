@@ -47,7 +47,7 @@ const TscriptionContent = ({ patientId }: { patientId: string }) => {
       }
     }, 1500);
     return () => {
-      controller.abort();
+      // controller.abort();
       clearTimeout(timeout);
     };
   }, [patientId, transcribedText]);
