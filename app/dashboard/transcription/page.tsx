@@ -2,17 +2,17 @@
 
 import Transcription from "@/components/transcription";
 import React, { useEffect } from "react";
-import { socket } from "@/lib/socket";
+import { useSocket } from "@/lib/socket";
 
 const page = () => {
-  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const socket = useSocket();
   useEffect(() => {
-    socket.on("connect", () => {
-      console.log("connected");
+    socket?.on("connect", () => {
+      console.log("connected to server");
     });
     return () => {
-      socket.off("connect");
-      socket.disconnect();
+      socket?.off("connect");
+      socket?.disconnect();
     };
   }, []);
   return (

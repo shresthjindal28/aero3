@@ -54,14 +54,12 @@ const ReportsDrawer = ({ patientId }: { patientId?: string }) => {
     <>
       <Drawer>
         <DrawerTrigger asChild>
-          <Button variant="outline">Open Reports</Button>
+          <Button variant={"default"}>Open Reports</Button>
         </DrawerTrigger>
         <DrawerContent>
           <DrawerHeader>
             <DrawerTitle>Patient Reports</DrawerTitle>
-            <DrawerDescription>
-              View and manage patient reports.
-            </DrawerDescription>
+            <DrawerDescription>View and manage patient reports.</DrawerDescription>
           </DrawerHeader>
           <PatientReports
             reports={reports}
