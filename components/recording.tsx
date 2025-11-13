@@ -1,6 +1,6 @@
 "use client";
 
-import { Dispatch, SetStateAction, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Mic, Pause, Play, StopCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,20 +17,13 @@ import { type Socket } from "socket.io-client";
 type RecordingStatus = "idle" | "recording" | "paused" | "stopped";
 
 type RecordingProps = {
-  onTranscribed: (text: string) => void;
   patientId?: string;
   socket: Socket;
-  setTranscribedText: Dispatch<SetStateAction<string>>;
 };
 
 const CHUNK_DURATION_MS = 5000; // record 5 seconds per chunk (each chunk is valid WebM)
 
-export default function Recording({
-  onTranscribed,
-  patientId,
-  socket,
-  setTranscribedText,
-}: RecordingProps) {
+export default function Recording({ patientId, socket }: RecordingProps) {
   const [recordingStatus, setRecordingStatus] = useState<RecordingStatus>("idle");
   const [uploading, setUploading] = useState<boolean>(false);
   const mediaStreamRef = useRef<MediaStream | null>(null);
