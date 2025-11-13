@@ -2,9 +2,7 @@
 
 import { useState } from "react";
 import { Stethoscope } from "lucide-react";
-import PatientSessionModal, {
-  PatientData,
-} from "@/components/PatientSessionModal"; // Import the new modal
+import PatientSessionModal, { PatientData } from "@/components/PatientSessionModal"; // Import the new modal
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TscriptionContent from "./tscription-content";
 import Recording from "@/components/recording";
@@ -13,12 +11,10 @@ import { type Socket } from "socket.io-client";
 import PatientDetails from "@/components/PatientDetails";
 import ReportsDrawer from "./reportsdrawer";
 
-
-export default function DoctorInputPage({ socket }: { socket: Socket }) {
+export default function DoctorInputPage({ socket }: { socket: Socket | null }) {
   const [isModalOpen, setIsModalOpen] = useState(true);
   const [patientNumber, setPatientNumber] = useState("");
   const [patientName, setPatientName] = useState("");
-  
 
   const handleSessionStart = (patient: PatientData) => {
     setPatientName(patient.name);
@@ -26,14 +22,9 @@ export default function DoctorInputPage({ socket }: { socket: Socket }) {
     setIsModalOpen(false);
   };
 
-  
-
   return (
     <main className="bg-background text-foreground min-h-screen">
-      <PatientSessionModal
-        isOpen={isModalOpen}
-        onSessionStart={handleSessionStart}
-      />
+      <PatientSessionModal isOpen={isModalOpen} onSessionStart={handleSessionStart} />
 
       <div className="max-w-5xl mx-auto p-4 md:p-8 space-y-6">
         <div className="flex justify-between items-center">
@@ -45,19 +36,16 @@ export default function DoctorInputPage({ socket }: { socket: Socket }) {
 
         {(patientNumber || patientName) && (
           <>
-            <Card>
+            <Card className="bg-background!">
               <PatientDetails name={patientName} id={patientNumber} />
             </Card>
           </>
         )}
 
-        <Recording
-          patientId={patientNumber || undefined}
-          socket={socket}
-        />
+        <Recording patientId={patientNumber || undefined} socket={socket} />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <TscriptionContent patientId={patientNumber} />
+          <TscriptionContent patientId={patientNumber} socket={socket} />
 
           <div className="space-y-6">
             <UploadReports patientId={patientNumber} />
@@ -69,16 +57,15 @@ export default function DoctorInputPage({ socket }: { socket: Socket }) {
               <CardContent>
                 <div className="border border-dashed border-muted-foreground rounded-md p-4 min-h-[100px]">
                   <p className="text-muted-foreground">
-                    As you suggested, this area would load a new component
-                    (e.g., {"<PdfPreviewComponent data={...} />"}) to render
-                    the generated PDF.
+                    As you suggested, this area would load a new component (e.g.,{" "}
+                    {"<PdfPreviewComponent data={...} />"}) to render the generated PDF.
                   </p>
                 </div>
               </CardContent>
             </Card>
           </div>
         </div>
-        <ReportsDrawer patientId={patientNumber}/>
+        <ReportsDrawer patientId={patientNumber} />
       </div>
     </main>
   );

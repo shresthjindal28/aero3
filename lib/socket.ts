@@ -1,12 +1,32 @@
-import { io } from "socket.io-client";
+"use client";
 
-// later will add to fetch this from DB based on doctor login
-const DOCTORID = "DOCT-000001";
+import { io, Socket } from "socket.io-client";
+import { useUser } from "@clerk/nextjs";
+import { useEffect, useRef, useState } from "react";
 
 const URL = "http://localhost:3500";
 
-export const socket = io(URL, {
-  query: {
-    doctorId: DOCTORID,
-  },
-});
+export function useSocket() {
+  const [socket, setSocket] = useState<Socket | null>(null);
+  const { user, isLoaded } = useUser();
+
+  useEffect(() => {
+    if (!URL || !isLoaded || !user) {
+      return;
+    }
+
+    const socket = io(URL, {
+      query: {
+        doctorId: user.id,
+      },
+    });
+
+    setSocket(socket);
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [isLoaded, user]);
+
+  return socket;
+}

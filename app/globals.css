@@ -249,3 +249,7 @@ body {
     --sidebar-ring: oklch(0.439 0 0);
   }
 }
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

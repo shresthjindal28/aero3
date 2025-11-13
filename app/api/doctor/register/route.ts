@@ -35,7 +35,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "phone_number is required" }, { status: 400 });
     }
     if (!certificate || !id_document) {
-      return NextResponse.json({ error: "certificate and id_document files are required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "certificate and id_document files are required" },
+        { status: 400 }
+      );
     }
 
     // Upload to Cloudinary (server-side)
@@ -44,7 +47,11 @@ export async function POST(req: Request) {
       uploadFileToCloudinary(id_document, "doctors/id_documents"),
     ]);
 
-    const doctor_name = [user.firstName, user.lastName].filter(Boolean).join(" ") || user.username || user.emailAddresses[0]?.emailAddress || "Doctor";
+    const doctor_name =
+      [user.firstName, user.lastName].filter(Boolean).join(" ") ||
+      user.username ||
+      user.emailAddresses[0]?.emailAddress ||
+      "Doctor";
 
     // Upsert Doctor record
     const doctor = await prisma.doctor.upsert({
