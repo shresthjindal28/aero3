@@ -1,6 +1,6 @@
 "use client";
 
-import { Dispatch, SetStateAction, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { Mic, Pause, Play, StopCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,6 +35,11 @@ export default function Recording({
   const [uploading, setUploading] = useState<boolean>(false);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const isRecordingRef = useRef<boolean>(false);
+  const isLastChunkRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    console.log("Last chunk: " + isLastChunkRef.current);
+  }, [isLastChunkRef.current]);
 
   // Start recording loop (restarts MediaRecorder for each chunk)
   const startRecording = async () => {
@@ -68,13 +73,19 @@ export default function Recording({
       };
 
       // Loop: record → send → repeat until stopped
-      while (isRecordingRef.current) {
+      while (isRecordingRef.current === true || isLastChunkRef.current === true) {
         const blob = await recordChunk();
-        if (!isRecordingRef.current) break;
+        if (isLastChunkRef.current) {
+          console.log("This is the last chunk");
+          console.log(isRecordingRef.current);
+        }
 
         console.log("🎧 Sending valid WebM chunk to backend...");
         const arrayBuffer = await blob.arrayBuffer();
         socket.emit("audio-channel-DOCT-000001", arrayBuffer);
+        if (isLastChunkRef.current === true) {
+          isLastChunkRef.current = false;
+        }
       }
     } catch (err) {
       console.error("❌ Microphone access error:", err);
@@ -100,6 +111,7 @@ export default function Recording({
   };
 
   const stopRecording = () => {
+    isLastChunkRef.current = true;
     console.log("🛑 Stopping recording...");
     isRecordingRef.current = false;
     setRecordingStatus("stopped");
