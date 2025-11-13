@@ -30,10 +30,6 @@ export default function Recording({ patientId, socket }: RecordingProps) {
   const isRecordingRef = useRef<boolean>(false);
   const isLastChunkRef = useRef<boolean>(false);
 
-  useEffect(() => {
-    console.log("Last chunk: " + isLastChunkRef.current);
-  }, [isLastChunkRef.current]);
-
   // Start recording loop (restarts MediaRecorder for each chunk)
   const startRecording = async () => {
     try {
