@@ -1,4 +1,5 @@
 import FeaturesSection from "@/components/features-ten";
+import Footer from "@/components/footer";
 import FloatingNavbar from "@/components/Nabvar";
 import Pricing from "@/components/pricing";
 import About from "@/section/About";
@@ -13,6 +14,7 @@ const page = () => {
     <FeaturesSection />
     <Pricing />
     <ContactSection />
+    <Footer />
   </div>;
 };
 
