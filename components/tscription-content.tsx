@@ -7,6 +7,7 @@ import { AnimatedList } from "@/components/ui/animated-list";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { AudioLines } from "lucide-react";
+import { toast } from "sonner";
 
 export type SoapNotesType = {
   assessment: string;
@@ -94,7 +95,20 @@ ${data.soap_notes.plan}
         }
 
         console.log("Success:", data2);
-        alert("SOAP note updated!");
+        toast.success("soap notes pushed to DB");
+
+        const responseRagEmbedding = await fetch("/api/rag-update", {
+          method: "POST",
+          body: fd,
+        });
+
+        const dataRagEmbedding = await responseRagEmbedding.json();
+        if (!response.ok) {
+          console.error("Server error:", dataRagEmbedding);
+          alert(data2.error ?? "Failed to update rag embeddings notes");
+          return;
+        }
+        toast.success("Data updated to rag embeddings");
       } catch (error) {
         console.log(error);
       }
