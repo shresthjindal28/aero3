@@ -10,7 +10,7 @@ datasource db {
 model User {
   user_id           String   @id
   user_name         String
-  transcripted_data String?
+  transcripted_data String[] @default([])
   audio_url         String?
   treated_by        String?
   hospital_id       String?
@@ -66,7 +66,7 @@ model Interaction {
   doctor_id         String
   patient_id        String
   audio_url         String?
-  transcripted_data String?
+  transcripted_data String[] @default([])
   soap_notes        String?
   reports_url       String?
   created_at        DateTime @default(now())

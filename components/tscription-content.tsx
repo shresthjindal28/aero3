@@ -1,27 +1,118 @@
 // clinet component beacuse parent in client
 import { Textarea } from "@/components/ui/textarea";
 import { useUser } from "@clerk/nextjs";
-import { useEffect, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { type Socket } from "socket.io-client";
 import { AnimatedList } from "@/components/ui/animated-list";
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { AudioLines } from "lucide-react";
 
+export type SoapNotesType = {
+  assessment: string;
+  objective: string;
+  plan: string;
+  subjective: string;
+};
+
 const TscriptionContent = ({
   patientId,
   socket,
+  isLastChunkRef,
+  setIsLastChunkRef,
+  soapNotes,
+  setSoapNotes,
 }: {
   patientId: string;
   socket: Socket | null;
+  isLastChunkRef: boolean;
+  setIsLastChunkRef: Dispatch<SetStateAction<boolean>>;
+  soapNotes: SoapNotesType | null;
+  setSoapNotes: Dispatch<SetStateAction<SoapNotesType | null>>;
 }) => {
   const [transcribedText, setTranscribedText] = useState("");
   const { user, isLoaded } = useUser();
   const [transcribedTextList, setTranscribedTextList] = useState<string[]>([]);
 
+  useEffect(() => {
+    // console.log("islastchunk:" + isLastChunkRef);
+    const lastChunkChores = async () => {
+      console.log("streaming stopped");
+      console.log("Sending this data to llm..");
+      console.log(transcribedText);
+
+      // getting soap data to llm
+      const fd = new FormData();
+      fd.append("conversation_text", transcribedText);
+      try {
+        const data = await (
+          await fetch(" https://med-llm.onrender.com/generate-soap", {
+            method: "POST",
+            body: fd,
+          })
+        ).json();
+        console.log(data.soap_notes);
+        if (data.soap_notes) setSoapNotes(data.soap_notes as SoapNotesType);
+
+        // sending data to db
+        if (!data.soap_notes || !patientId) {
+          console.error(
+            "Soap notes or patientID not found while updating db with soap notes"
+          );
+          return;
+        }
+        fd.append("patient_id", patientId);
+        fd.append("transcribed_text", transcribedText);
+        fd.append(
+          "soap_notes",
+          `
+date: ${new Date().toLocaleDateString()}\n
+Subjective:
+${data.soap_notes.subjective}
+
+Objective:
+${data.soap_notes.objective}
+
+Assessment:
+${data.soap_notes.assessment}
+
+Plan:
+${data.soap_notes.plan}
+`
+        );
+
+        const response = await fetch("/api/update-soapnotes", {
+          method: "POST",
+          body: fd,
+        });
+
+        const data2 = await response.json();
+        if (!response.ok) {
+          console.error("Server error:", data2);
+          alert(data2.error ?? "Failed to update SOAP notes");
+          return;
+        }
+
+        console.log("Success:", data2);
+        alert("SOAP note updated!");
+      } catch (error) {
+        console.log(error);
+      }
+
+      // after sending data to llm and db
+      setIsLastChunkRef(false);
+    };
+
+    if (isLastChunkRef && transcribedTextList.length > 0) {
+      lastChunkChores();
+    }
+  }, [isLastChunkRef]);
+
   const handleTranscriptChunk = (chunk: string) => {
     if (!chunk) return;
+    // concatenation of chunk
     setTranscribedText((prev) => (prev ? `${prev} ${chunk}` : chunk));
+    // push into list per chunk
     setTranscribedTextList((prev) => [...prev, chunk]);
   };
 
@@ -54,16 +145,6 @@ const TscriptionContent = ({
       {isLoaded ? (
         <div>
           <Card className="p-3 bg-background relative space-y-2 h-[70vh] overflow-hidden">
-            {/* <Label htmlFor="transcription">Transcription</Label> */}
-            {/* <Textarea
-              id="transcription"
-              value={transcribedText}
-              readOnly
-              placeholder="Your recorded voice will appear here as text after stopping..."
-              rows={15}
-              className="text-base rounded-(--radius) w-full h-full"
-            /> */}
-
             <AnimatedList className="h-full no-scrollbar overflow-scroll ">
               {transcribedTextList.length > 0 ? (
                 transcribedTextList.map((el: string, i) => (
