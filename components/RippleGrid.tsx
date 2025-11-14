@@ -16,6 +16,26 @@ type Props = {
   mouseInteractionRadius?: number;
 };
 
+type Uniform<T> = { value: T };
+type Uniforms = {
+  iTime: Uniform<number>;
+  iResolution: Uniform<[number, number]>;
+  enableRainbow: Uniform<boolean>;
+  gridColor: Uniform<[number, number, number]>;
+  rippleIntensity: Uniform<number>;
+  gridSize: Uniform<number>;
+  gridThickness: Uniform<number>;
+  fadeDistance: Uniform<number>;
+  vignetteStrength: Uniform<number>;
+  glowIntensity: Uniform<number>;
+  opacity: Uniform<number>;
+  gridRotation: Uniform<number>;
+  mouseInteraction: Uniform<boolean>;
+  mousePosition: Uniform<[number, number]>;
+  mouseInfluence: Uniform<number>;
+  mouseInteractionRadius: Uniform<number>;
+};
+
 const RippleGrid: React.FC<Props> = ({
   enableRainbow = false,
   gridColor = "#ffffff",
@@ -34,7 +54,7 @@ const RippleGrid: React.FC<Props> = ({
   const mousePositionRef = useRef({ x: 0.5, y: 0.5 });
   const targetMouseRef = useRef({ x: 0.5, y: 0.5 });
   const mouseInfluenceRef = useRef(0);
-  const uniformsRef = useRef<any>(null);
+  const uniformsRef = useRef<Uniforms | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -162,7 +182,7 @@ void main() {
     gl_FragColor = vec4(color * t * finalFade * opacity, alpha);
 }`;
 
-    const uniforms = {
+    const uniforms: Uniforms = {
       iTime: { value: 0 },
       iResolution: { value: [1, 1] },
       enableRainbow: { value: enableRainbow },

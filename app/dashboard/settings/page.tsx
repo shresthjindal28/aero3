@@ -98,7 +98,6 @@ const page = () => {
           </CardContent>
         </Card>
 
-        {/* New Account card with Logout button */}
         <Card>
           <CardHeader>
             <CardTitle>Account</CardTitle>

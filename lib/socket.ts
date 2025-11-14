@@ -21,7 +21,9 @@ export function useSocket() {
       },
     });
 
-    setSocket(socket);
+    socket.on("connect", () => {
+      setSocket(socket);
+    });
 
     return () => {
       socket.disconnect();

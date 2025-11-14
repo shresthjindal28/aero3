@@ -36,12 +36,11 @@ export async function POST(req: Request) {
         treated_by: treatedby,
       },
     });
-    const u = user as any;
     const patient = {
-      user_id: u.user_id,
-      user_name: u.user_name,
-      user_mobile: u.user_mobile ?? null,
-      address: u.address ?? null,
+      user_id: user.user_id,
+      user_name: user.user_name,
+      user_mobile: user.user_mobile ?? null,
+      address: user.address ?? null,
     };
 
     return NextResponse.json({ success: true, patient }, { status: 201 });
@@ -61,19 +60,18 @@ export async function GET(req: Request) {
     }
 
     const user = await prisma.user.findUnique({
-      where: { user_id: id } as any,
+      where: { user_id: id },
     });
 
     if (!user) {
       return NextResponse.json({ error: "Patient not found" }, { status: 404 });
     }
 
-    const u2 = user as any;
     const patient = {
-      user_id: u2.user_id,
-      user_name: u2.user_name,
-      user_mobile: u2.user_mobile ?? null,
-      address: u2.address ?? null,
+      user_id: user.user_id,
+      user_name: user.user_name,
+      user_mobile: user.user_mobile ?? null,
+      address: user.address ?? null,
     };
 
     return NextResponse.json({ patient }, { status: 200 });

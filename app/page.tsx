@@ -1,5 +1,19 @@
+import FeaturesSection from "@/components/features-ten";
+import FloatingNavbar from "@/components/Nabvar";
+import Pricing from "@/components/pricing";
+import About from "@/section/About";
+import ContactSection from "@/section/Contact";
+import HeroPage from "@/section/HeroPage";
+
 const page = () => {
-  return <div className="min-h-screen">{/* <Pointer className="fill-primary" /> */}</div>;
+  return <div className="min-h-screen">
+    <FloatingNavbar />
+    <HeroPage />
+    <About />
+    <FeaturesSection />
+    <Pricing />
+    <ContactSection />
+  </div>;
 };
 
 export default page;

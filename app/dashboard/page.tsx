@@ -27,8 +27,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-// Note: Tabs imports are no longer needed unless you add more tabs later
-// import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -46,7 +44,6 @@ interface TranscriptRow {
   created_at: string;
 }
 
-// Dummy data generator
 const dummyTranscripts: TranscriptRow[] = Array.from({ length: 8 }, (_, i) => ({
   id: 1000 + i,
   conversation_text: `Patient reports mild headache and fatigue. No fever, no chills. Vitals stable. Recommended rest and hydration. Follow-up in one week if symptoms persist.`,
@@ -61,7 +58,6 @@ const DashboardPage = () => {
   const [txTotalCount, setTxTotalCount] = useState<number | null>(null);
 
   useEffect(() => {
-    // Simulate loading delay
     const timer = setTimeout(() => {
       setTranscripts(dummyTranscripts);
       setTxTotalCount(dummyTranscripts.length);
@@ -75,19 +71,12 @@ const DashboardPage = () => {
 
   return (
     <div className="w-[80vw] min-h-screen p-4 md:p-8 space-y-8">
-      {/* CHANGE 1: Header Section
-        - Changed from 'flex' to 'flex flex-col sm:flex-row'
-        - Changed 'items-center' to 'sm:items-center'
-        - Added 'gap-4' for spacing when stacked
-      */}
-      {/* Header Section */}
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-3">
           <Avatar className="h-10 w-10">
             <AvatarImage src={user?.imageUrl} alt={user?.firstName || "User"} />
             <AvatarFallback>
               {user?.firstName?.[0]}
-              {/* {user?.lastName?.[0]} */}
             </AvatarFallback>
           </Avatar>
           <div>
@@ -117,7 +106,6 @@ const DashboardPage = () => {
         </div>
       </div>
 
-      {/* Main Content (Stats Cards) - Unchanged */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -161,10 +149,6 @@ const DashboardPage = () => {
         </Card>
       </div>
 
-      {/* CHANGE 2: Transcriptions Section
-        - Removed the <Tabs>, <TabsList>, and <TabsContent> wrappers
-        - The <Card> now sits directly in the main layout flow
-      */}
       <Card className="">
         <CardHeader>
           <CardTitle>Recent Transcriptions</CardTitle>
@@ -179,14 +163,12 @@ const DashboardPage = () => {
                 <TableHead>ID</TableHead>
                 <TableHead>Conversation</TableHead>
                 <TableHead>Date &amp; Time</TableHead>
-                {/* CHANGE 3: Added Actions column */}
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {txLoading && (
                 <TableRow>
-                  {/* CHANGE 4: Updated colSpan */}
                   <TableCell
                     colSpan={4}
                     className="text-center text-muted-foreground"
@@ -198,7 +180,6 @@ const DashboardPage = () => {
 
               {txError && !txLoading && (
                 <TableRow>
-                  {/* CHANGE 4: Updated colSpan */}
                   <TableCell colSpan={4} className="text-center text-red-600">
                     Failed to load: {txError}
                   </TableCell>
@@ -230,7 +211,6 @@ const DashboardPage = () => {
                     <TableCell>
                       {new Date(t.created_at).toLocaleString()}
                     </TableCell>
-                    {/* CHANGE 3: Added Actions dropdown */}
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -265,7 +245,6 @@ const DashboardPage = () => {
 
               {!txLoading && !txError && transcripts.length === 0 && (
                 <TableRow>
-                  {/* CHANGE 4: Updated colSpan */}
                   <TableCell
                     colSpan={4}
                     className="text-center text-muted-foreground"
