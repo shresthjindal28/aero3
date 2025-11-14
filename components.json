@@ -4,7 +4,7 @@
   "rsc": true,
   "tsx": true,
   "tailwind": {
-    "config": "",
+        "config": "tailwind.config.js",
     "css": "app/globals.css",
     "baseColor": "neutral",
     "cssVariables": true,
@@ -20,6 +20,9 @@
   },
   "registries": {
     "@react-bits": "https://reactbits.dev/r/{name}.json",
-    "@smoothui": "https://smoothui.dev/r/{name}.json"
+
+    "@smoothui": "https://smoothui.dev/r/{name}.json",
+
+    "@magicui": "https://magicui.design/r/{name}.json"
   }
 }

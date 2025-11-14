@@ -22,10 +22,10 @@ model User {
   hospital Hospital? @relation(fields: [hospital_id], references: [hospital_id])
 
   // Relations
-  doctorInteractions Doctor[]  @relation("PatientDoctor")
+  doctorInteractions Doctor[]      @relation("PatientDoctor")
   interactions       Interaction[]
-  reports            Report[]  @relation("UserReports")
-  soapNotes          SoapNote[] @relation("UserSoap")
+  reports            Report[]      @relation("UserReports")
+  soapNotes          SoapNote[]    @relation("UserSoap")
 }
 
 model Doctor {
@@ -37,10 +37,11 @@ model Doctor {
   id_document_url   String?
   profile_image_url String?
   created_at        DateTime @default(now())
+  doctorOnboarded   Boolean  @default(false)
 
   // Relation to patient (one doctor can be linked to one patient)
   patient_id String?
-  patient    User?    @relation("PatientDoctor", fields: [patient_id], references: [user_id])
+  patient    User?   @relation("PatientDoctor", fields: [patient_id], references: [user_id])
 
   // Relation to Hospital
   hospital Hospital? @relation(fields: [hospital_id], references: [hospital_id])
@@ -50,7 +51,7 @@ model Doctor {
 }
 
 model Hospital {
-  hospital_id   String @id
+  hospital_id   String   @id
   hospital_name String
   address       String?
   phone_number  String?
@@ -70,7 +71,7 @@ model Interaction {
   reports_url       String?
   created_at        DateTime @default(now())
 
-  doctor Doctor @relation(fields: [doctor_id], references: [doctor_id], name: "DoctorInteractions")
+  doctor  Doctor @relation(fields: [doctor_id], references: [doctor_id], name: "DoctorInteractions")
   patient User   @relation(fields: [patient_id], references: [user_id])
 }
 

@@ -1,71 +1,94 @@
+// clinet component beacuse parent in client
 import { Textarea } from "@/components/ui/textarea";
-import { useEffect, useState } from "react";
-import { socket } from "@/lib/socket";
+import { useUser } from "@clerk/nextjs";
+import { useEffect, useRef, useState } from "react";
+import { type Socket } from "socket.io-client";
+import { AnimatedList } from "@/components/ui/animated-list";
+import { Card } from "./ui/card";
+import { Button } from "./ui/button";
+import { AudioLines } from "lucide-react";
 
-const TscriptionContent = ({ patientId }: { patientId: string }) => {
+const TscriptionContent = ({
+  patientId,
+  socket,
+}: {
+  patientId: string;
+  socket: Socket | null;
+}) => {
   const [transcribedText, setTranscribedText] = useState("");
+  const { user, isLoaded } = useUser();
+  const [transcribedTextList, setTranscribedTextList] = useState<string[]>([]);
+
+  const handleTranscriptChunk = (chunk: string) => {
+    if (!chunk) return;
+    setTranscribedText((prev) => (prev ? `${prev} ${chunk}` : chunk));
+    setTranscribedTextList((prev) => [...prev, chunk]);
+  };
 
   useEffect(() => {
-    const eventName = "transcripted-data-DOCT-000001";
+    if (!socket) return;
 
-    const handleTranscriptChunk = (chunk: string) => {
-      if (!chunk) return;
-      setTranscribedText((prev) => (prev ? `${prev} ${chunk}` : chunk));
-    };
+    if (!isLoaded || !user) return;
 
-    socket.on(eventName, (data) => {
+    const eventName = `transcripted-data-${user.id}`;
+    console.log("Listening for:", eventName);
+
+    const handler = (data: string) => {
       console.log("Received transcript chunk:", data);
       if (typeof data === "string") {
         handleTranscriptChunk(data);
-      } else if (data?.transcript) {
-        handleTranscriptChunk(data.transcript);
+      } else if (data) {
+        handleTranscriptChunk(data);
       }
-    });
+    };
+
+    socket.on(eventName, handler);
 
     return () => {
-      socket.off(eventName);
+      socket.off(eventName, handler);
     };
-  }, []);
-
-  useEffect(() => {
-    if (!patientId || !transcribedText) return;
-
-    const controller = new AbortController();
-    const timeout = setTimeout(async () => {
-      try {
-        await fetch("/api/audio", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            patientId,
-            transcript: transcribedText,
-          }),
-          signal: controller.signal,
-        });
-      } catch (err) {
-        console.error("Failed to store transcript", err);
-      }
-    }, 1500);
-    return () => {
-      controller.abort();
-      clearTimeout(timeout);
-    };
-  }, [patientId, transcribedText]);
+  }, [socket, user, isLoaded]);
 
   return (
-    <div>
-      <div className="space-y-2 h-[60vh]">
-        {/* <Label htmlFor="transcription">Transcription</Label> */}
-        <Textarea
-          id="transcription"
-          value={transcribedText}
-          readOnly
-          placeholder="Your recorded voice will appear here as text after stopping..."
-          rows={15}
-          className="text-base rounded-(--radius) w-full h-full"
-        />
-      </div>
-    </div>
+    <>
+      {isLoaded ? (
+        <div>
+          <Card className="p-3 bg-background relative space-y-2 h-[70vh] overflow-hidden">
+            {/* <Label htmlFor="transcription">Transcription</Label> */}
+            {/* <Textarea
+              id="transcription"
+              value={transcribedText}
+              readOnly
+              placeholder="Your recorded voice will appear here as text after stopping..."
+              rows={15}
+              className="text-base rounded-(--radius) w-full h-full"
+            /> */}
+
+            <AnimatedList className="h-full no-scrollbar overflow-scroll ">
+              {transcribedTextList.length > 0 ? (
+                transcribedTextList.map((el: string, i) => (
+                  <div
+                    className="border rounded-(--radius) bg-card py-4 text-sm px-2 duration-150 text-center w-full"
+                    key={i}
+                  >
+                    <p>{el}</p>
+                  </div>
+                ))
+              ) : (
+                <div className="absolute top-1/2 gap-4 -translate-y-1/2 w-full flex flex-col items-center justify-center">
+                  <AudioLines size={60} />
+                  <div className="text-sm text-muted-foreground">
+                    Transcribed Text will appear here.
+                  </div>
+                </div>
+              )}
+            </AnimatedList>
+          </Card>
+        </div>
+      ) : (
+        <p>loading..</p>
+      )}
+    </>
   );
 };
 
