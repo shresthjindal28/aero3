@@ -6,16 +6,26 @@ import { prisma } from "@/lib/prisma";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { name, phone, address } = body || {};
+    const { name, phone, address, treatedby } = body || {};
 
-    if (!name || typeof name !== "string") {
+    if (!name || typeof name !== "string" || !treatedby) {
       return NextResponse.json(
-        { error: "Patient name is required" },
+        { error: "Patient name is required & doctor id is req" },
         { status: 400 }
       );
     }
 
     const userId = generatePatientId();
+
+    // const user = await prisma.user.create({
+    //   data: {
+    //     user_id: userId,
+    //     user_name: name,
+    //     user_mobile: phone ?? null,
+    //     address: address ?? null,
+
+    //   } as any,
+    // });
 
     const user = await prisma.user.create({
       data: {
@@ -23,9 +33,9 @@ export async function POST(req: Request) {
         user_name: name,
         user_mobile: phone ?? null,
         address: address ?? null,
-      } as any,
+        treated_by: treatedby,
+      },
     });
-
     const u = user as any;
     const patient = {
       user_id: u.user_id,
@@ -37,10 +47,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true, patient }, { status: 201 });
   } catch (error) {
     console.error("POST /api/patient error", error);
-    return NextResponse.json(
-      { error: "Failed to create patient" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to create patient" }, { status: 500 });
   }
 }
 
@@ -72,9 +79,6 @@ export async function GET(req: Request) {
     return NextResponse.json({ patient }, { status: 200 });
   } catch (error) {
     console.error("GET /api/patient error", error);
-    return NextResponse.json(
-      { error: "Failed to fetch patient" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch patient" }, { status: 500 });
   }
 }

@@ -1,0 +1,2 @@
+- Added isonBorded validation on all protected routes
+- hopistal id and profile image not updating in onboarding (bug)

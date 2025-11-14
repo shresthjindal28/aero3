@@ -28,6 +28,7 @@ export async function POST(req: Request) {
 
     const formData = await req.formData();
     const phone_number = (formData.get("phone_number") as string) || undefined;
+    const doctor_name = formData.get("doctor_name") as string;
     const certificate = formData.get("certificate") as File | null;
     const id_document = formData.get("id_document") as File | null;
 
@@ -47,12 +48,6 @@ export async function POST(req: Request) {
       uploadFileToCloudinary(id_document, "doctors/id_documents"),
     ]);
 
-    const doctor_name =
-      [user.firstName, user.lastName].filter(Boolean).join(" ") ||
-      user.username ||
-      user.emailAddresses[0]?.emailAddress ||
-      "Doctor";
-
     // Upsert Doctor record
     const doctor = await prisma.doctor.upsert({
       where: { doctor_id: userId },
@@ -61,6 +56,7 @@ export async function POST(req: Request) {
         phone_number,
         certificate_url,
         id_document_url,
+        doctorOnboarded: true,
       },
       create: {
         doctor_id: userId,
@@ -68,6 +64,7 @@ export async function POST(req: Request) {
         phone_number,
         certificate_url,
         id_document_url,
+        doctorOnboarded: true,
       },
     });
 

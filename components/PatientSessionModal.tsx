@@ -15,6 +15,7 @@ import {
 // Import the Tabs components
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useUser } from "@clerk/nextjs";
 
 export interface PatientData {
   id: string;
@@ -32,6 +33,8 @@ export default function PatientSessionModal({
   isOpen,
   onSessionStart,
 }: PatientSessionModalProps) {
+  const { user, isLoaded } = useUser();
+
   const [modalPatientId, setModalPatientId] = useState("");
   const [modalPatientName, setModalPatientName] = useState("");
   const [modalPatientPhone, setModalPatientPhone] = useState("");
@@ -90,6 +93,7 @@ export default function PatientSessionModal({
           name: modalPatientName.trim(),
           phone: modalPatientPhone.trim(),
           address: modalPatientAddress.trim() || undefined,
+          treatedby: user?.id,
         }),
       });
       if (!res.ok) {

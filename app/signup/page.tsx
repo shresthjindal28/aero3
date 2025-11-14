@@ -71,7 +71,7 @@ export default function SignUpPage() {
         // Sometimes sign up completes immediately
         await setActive({ session: res.createdSessionId });
         // Register doctor details server-side before navigating
-        router.push("/dashboard");
+        router.push("/onboarding");
       } else {
         // Show the OTP form
         setPendingVerification(true);
