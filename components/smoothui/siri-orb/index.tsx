@@ -54,6 +54,7 @@ export type SiriOrbProps = {
     c3?: string;
   };
   animationDuration?: number;
+  paused?: boolean;
 };
 
 const SiriOrb: React.FC<SiriOrbProps> = ({
@@ -61,6 +62,7 @@ const SiriOrb: React.FC<SiriOrbProps> = ({
   className,
   colors,
   animationDuration = 20,
+  paused = false,
 }) => {
   const defaultColors = {
     bg: "oklch(95% 0.02 264.695)",
@@ -129,7 +131,7 @@ const SiriOrb: React.FC<SiriOrbProps> = ({
 
   return (
     <div
-      className={cn("siri-orb", className)}
+      className={cn("siri-orb", className, paused ? "paused" : undefined)}
       style={
         {
           width: size,
@@ -246,6 +248,10 @@ const SiriOrb: React.FC<SiriOrbProps> = ({
           to {
             --angle: 360deg;
           }
+        }
+
+        .siri-orb.paused::before {
+          animation: none;
         }
 
         @media (prefers-reduced-motion: reduce) {

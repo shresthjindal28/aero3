@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { Stethoscope } from "lucide-react";
-import PatientSessionModal, { PatientData } from "@/components/PatientSessionModal"; // Import the new modal
+import PatientSessionModal, {
+  PatientData,
+} from "@/components/PatientSessionModal"; // Import the new modal
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TscriptionContent, { SoapNotesType } from "./tscription-content";
 import Recording from "@/components/recording";
@@ -33,7 +35,10 @@ export default function DoctorInputPage({ socket }: { socket: Socket | null }) {
 
   return (
     <main className="bg-background text-foreground min-h-screen">
-      <PatientSessionModal isOpen={isModalOpen} onSessionStart={handleSessionStart} />
+      <PatientSessionModal
+        isOpen={isModalOpen}
+        onSessionStart={handleSessionStart}
+      />
 
       <div className="max-w-5xl mx-auto p-4 md:p-8 space-y-6">
         <div className="flex justify-between items-center">
@@ -69,16 +74,14 @@ export default function DoctorInputPage({ socket }: { socket: Socket | null }) {
 
           <div className="space-y-6">
             <UploadReports patientId={patientNumber} />
-            {/* <Card>
+            <Card>
               <CardHeader>
                 <CardTitle>Generated Report (Preview)</CardTitle>
               </CardHeader>
               <CardContent className="flex items-center justify-around">
                 <ReportsDrawer patientId={patientNumber} />
-
-                <MorphSurface />
               </CardContent>
-            </Card> */}
+            </Card>
           </div>
         </div>
         <Card>
@@ -116,6 +119,9 @@ export default function DoctorInputPage({ socket }: { socket: Socket | null }) {
                   <p className="text-sm leading-relaxed text-foreground/80">
                     {soapNotes.plan}
                   </p>
+                </section>
+                <section className="p-2 flex items-center justify-center">
+                  <MorphSurface />
                 </section>
               </div>
             )}
