@@ -1,7 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-function cn(...inputs: (string | Record<string, boolean> | undefined | null)[]) {
+import {Pause } from "lucide-react";
+
+// import {SiriOrb} from "../siri-orb";
+function cn(
+  ...inputs: (string | Record<string, boolean> | undefined | null)[]
+) {
   return inputs
     .filter(Boolean)
     .map((input) => {
@@ -21,6 +26,7 @@ import { AnimatePresence, motion } from "motion/react";
 import React from "react";
 import SiriOrb from "../siri-orb";
 import { useClickOutside } from "./use-click-outside";
+import { X } from "lucide-react";
 
 const SPEED = 1;
 const SUCCESS_DURATION = 1500;
@@ -83,22 +89,20 @@ export function MorphSurface() {
 
   return (
     <div
-      className="flex items-center justify-center"
-      style={{
-        width: FEEDBACK_WIDTH,
-        height: FEEDBACK_HEIGHT,
-      }}
+      className={cn("flex items-center justify-center", {
+        "fixed inset-0 z-50": showFeedback,
+      })}
     >
       <motion.div
         animate={{
-          width: showFeedback ? FEEDBACK_WIDTH : "auto",
-          height: showFeedback ? FEEDBACK_HEIGHT : DOCK_HEIGHT,
+          width: showFeedback ? "100vw" : "auto",
+          height: showFeedback ? "100vh" : DOCK_HEIGHT,
           borderRadius: showFeedback
             ? FEEDBACK_BORDER_RADIUS
             : DOCK_BORDER_RADIUS,
         }}
         className={cn(
-          "relative bottom z-3 flex flex-col items-center overflow-hidden border bg-background max-sm:bottom"
+          "relative bottom z-50 flex flex-col items-center overflow-hidden border bg-background max-sm:bottom"
         )}
         data-footer
         initial={false}
@@ -167,8 +171,7 @@ function Dock() {
   );
 }
 
-const FEEDBACK_WIDTH = 360;
-const FEEDBACK_HEIGHT = 200;
+// Using viewport units for fullscreen when feedback is open
 
 function Feedback({
   ref,
@@ -178,7 +181,7 @@ function Feedback({
   onSuccess: () => void;
 }) {
   const { closeFeedback, showFeedback } = useFooter();
-  const submitRef = React.useRef<HTMLButtonElement>(null);
+  const [paused, setPaused] = React.useState(false);
 
   function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -191,7 +194,7 @@ function Feedback({
     }
     if (e.key === "Enter" && e.metaKey) {
       e.preventDefault();
-      submitRef.current?.click();
+      e.currentTarget.form?.requestSubmit();
     }
   }
 
@@ -200,8 +203,8 @@ function Feedback({
       className="absolute bottom-0"
       onSubmit={onSubmit}
       style={{
-        width: FEEDBACK_WIDTH,
-        height: FEEDBACK_HEIGHT,
+        width: showFeedback ? "100vw" : 0,
+        height: showFeedback ? "100vh" : 0,
         pointerEvents: showFeedback ? "all" : "none",
       }}
     >
@@ -221,26 +224,30 @@ function Feedback({
           >
             <div className="flex justify-between py-1">
               <p className="z-2 ml-[38px] flex select-none items-center gap-[6px] text-foreground">
-                AI Input
+                {/* AI Input */}
               </p>
               <button
-                className="-translate-y-[3px] right-4 mt-1 flex cursor-pointer select-none items-center justify-center gap-1 rounded-[12px] bg-transparent pr-1 text-center text-foreground"
-                ref={submitRef}
-                type="submit"
+                type="button"
+                onClick={closeFeedback}
+                className="-translate-y-[3px] right-4 mt-1 flex h-8 w-8 cursor-pointer select-none items-center justify-center rounded-md bg-transparent text-center text-foreground hover:bg-primary/10"
+                aria-label="Close"
               >
-                <Kbd>⌘</Kbd>
-                <Kbd className="w-fit">Enter</Kbd>
+                <X className="h-5 w-5" />
               </button>
             </div>
-            <textarea
-              className="h-full w-full resize-none scroll-py-2 rounded-md bg-primary p-4 outline-0"
-              name="message"
-              onKeyDown={onKeyDown}
-              placeholder="Ask me anything..."
-              ref={ref}
-              required
-              spellCheck={false}
-            />
+            <div className="border h-full w-full flex items-center justify-center">
+              <div className="flex flex-col items-center gap-3">
+                <SiriOrb paused={paused} />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setPaused(true)}
+                >
+                  <Pause className="mr-2 h-4 w-4" />
+                  Pause
+                </Button>
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -263,25 +270,6 @@ function Feedback({
         )}
       </AnimatePresence>
     </form>
-  );
-}
-
-function Kbd({
-  children,
-  className,
-}: {
-  children: string;
-  className?: string;
-}) {
-  return (
-    <kbd
-      className={cn(
-        "flex h-6 w-fit items-center justify-center rounded-sm border bg-primary px-[6px] font-sans text-foreground",
-        className
-      )}
-    >
-      {children}
-    </kbd>
   );
 }
 

@@ -9,10 +9,6 @@ const sectionLinks = [
   { title: 'Contact', href: '#contact', id: 'contact' },
 ]
 
-const authLinks = [
-  { title: 'Login', href: '/signin' },
-  { title: 'Sign Up', href: '/signup' },
-]
 
 export default function FooterSection() {
   const handleSmoothScroll = (
@@ -38,17 +34,6 @@ export default function FooterSection() {
                 key={link.id}
                 href={link.href}
                 onClick={(e) => handleSmoothScroll(e, link.id)}
-                className="group relative block text-gray-300 transition-colors hover:text-emerald-300"
-              >
-                <span>{link.title}</span>
-                <span className="absolute left-0 -bottom-1 h-px w-full origin-center scale-x-0 transform bg-emerald-400 transition-transform duration-300 group-hover:scale-x-100" />
-              </Link>
-            ))}
-
-            {authLinks.map((link) => (
-              <Link
-                key={link.title}
-                href={link.href}
                 className="group relative block text-gray-300 transition-colors hover:text-emerald-300"
               >
                 <span>{link.title}</span>
