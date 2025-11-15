@@ -1,5 +1,7 @@
+"use client";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/app-sidebar";
+import dynamic from "next/dynamic";
+const AppSidebar = dynamic(() => import("@/components/app-sidebar").then(m => m.AppSidebar), { ssr: false });
 import { Toaster } from "@/components/ui/sonner";
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (

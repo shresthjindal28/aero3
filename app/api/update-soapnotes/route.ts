@@ -36,13 +36,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Could Not update" }, { status: 500 });
     }
     return NextResponse.json({ status: 200 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Update SOAP notes error:", error);
-
+    const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
       {
         error: "Internal Server Error",
-        message: error?.message,
+        message,
       },
       { status: 500 }
     );

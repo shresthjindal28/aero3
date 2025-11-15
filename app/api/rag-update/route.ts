@@ -43,13 +43,13 @@ export async function POST(req: Request) {
     if (body.status === "processing") return NextResponse.json({ status: 200 });
     else
       NextResponse.json({ error: "Error while embedding data to rag" }, { status: 500 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Update SOAP notes error:", error);
-
+    const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
       {
         error: "Internal Server Error",
-        message: error?.message,
+        message,
       },
       { status: 500 }
     );

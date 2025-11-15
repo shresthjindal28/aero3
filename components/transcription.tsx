@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Bot, Play, Stethoscope, StopCircle, Loader2 } from "lucide-react";
 import PatientSessionModal, {
   PatientData,
-} from "@/components/PatientSessionModal"; // Import the new modal
+} from "@/components/PatientSessionModal"; 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TscriptionContent, { SoapNotesType } from "./tscription-content";
 import Recording from "@/components/recording";
@@ -26,9 +26,27 @@ import SiriOrb from "./smoothui/siri-orb";
 import { useUser } from "@clerk/nextjs";
 
 export default function DoctorInputPage({ socket }: { socket: Socket | null }) {
-  const [isModalOpen, setIsModalOpen] = useState(true);
-  const [patientNumber, setPatientNumber] = useState("");
-  const [patientName, setPatientName] = useState("");
+  const [patientNumber, setPatientNumber] = useState(() => {
+    try {
+      return localStorage.getItem("currentPatientId") || "";
+    } catch {
+      return "";
+    }
+  });
+  const [patientName, setPatientName] = useState(() => {
+    try {
+      return localStorage.getItem("currentPatientName") || "";
+    } catch {
+      return "";
+    }
+  });
+  const [isModalOpen, setIsModalOpen] = useState(() => {
+    try {
+      return !localStorage.getItem("currentPatientId");
+    } catch {
+      return true;
+    }
+  });
   const [isLastChunkRef, setIsLastChunkRef] = useState(false);
   const [soapNotes, setSoapNotes] = useState<SoapNotesType | null>(null);
   const [readyForTalk, setReadyForTalk] = useState(false);
@@ -42,6 +60,10 @@ export default function DoctorInputPage({ socket }: { socket: Socket | null }) {
   const handleSessionStart = (patient: PatientData) => {
     setPatientName(patient.name);
     setPatientNumber(patient.id);
+    try {
+      localStorage.setItem("currentPatientId", patient.id);
+      localStorage.setItem("currentPatientName", patient.name ?? "");
+    } catch {}
     setIsModalOpen(false);
   };
 
@@ -76,6 +98,7 @@ export default function DoctorInputPage({ socket }: { socket: Socket | null }) {
     <>
       {isLoaded ? (
         <main className="bg-background text-foreground min-h-screen">
+
           <PatientSessionModal
             isOpen={isModalOpen}
             onSessionStart={handleSessionStart}
@@ -314,9 +337,7 @@ export default function DoctorInputPage({ socket }: { socket: Socket | null }) {
                         {soapNotes.plan}
                       </p>
                     </section>
-                    <section className="p-2 flex items-center justify-center">
-                      <MorphSurface />
-                    </section>
+                    
                   </div>
                 )}
               </CardContent>
