@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useUser } from "@clerk/nextjs";
 
 const FloatingNavbar = () => {
   const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
@@ -11,6 +12,7 @@ const FloatingNavbar = () => {
     const el = document.getElementById(id);
     el?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
+  const { isSignedIn } = useUser();
   return (
     <nav className="fixed w-[70%] top-4 left-1/2 z-50 -translate-x-1/2">
       <div
@@ -79,21 +81,32 @@ const FloatingNavbar = () => {
           </Link>
         </div>
 
-        {/* --- Auth Links with Hover Effect --- */}
+        {/* --- Auth / Dashboard --- */}
         <div className="hidden items-center gap-4 md:flex">
-          <Link
-            href="/signin"
-            className="relative group text-gray-300 transition-colors hover:text-emerald-300"
-          >
-            <span>Login</span>
-            <span className="absolute left-0 -bottom-1 w-full h-px bg-emerald-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
-          </Link>
-          <Button
-            variant="outline"
-            className="rounded-full border-emerald-500 bg-emerald-500/10 text-emerald-400 transition-all hover:bg-emerald-500/20 hover:text-emerald-300"
-          >
-            <Link href="/signup">Sign Up</Link>
-          </Button>
+          {isSignedIn ? (
+            <Button
+              variant="outline"
+              className="rounded-full border-emerald-500 bg-emerald-500/10 text-emerald-400 transition-all hover:bg-emerald-500/20 hover:text-emerald-300"
+            >
+              <Link href="/dashboard">Dashboard</Link>
+            </Button>
+          ) : (
+            <>
+              <Link
+                href="/signin"
+                className="relative group text-gray-300 transition-colors hover:text-emerald-300"
+              >
+                <span>Login</span>
+                <span className="absolute left-0 -bottom-1 w-full h-px bg-emerald-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center" />
+              </Link>
+              <Button
+                variant="outline"
+                className="rounded-full border-emerald-500 bg-emerald-500/10 text-emerald-400 transition-all hover:bg-emerald-500/20 hover:text-emerald-300"
+              >
+                <Link href="/signup">Sign Up</Link>
+              </Button>
+            </>
+          )}
         </div>
 
         {/* --- Mobile Menu --- */}
