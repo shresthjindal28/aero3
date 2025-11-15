@@ -23,6 +23,7 @@ const TscriptionContent = ({
   setIsLastChunkRef,
   soapNotes,
   setSoapNotes,
+  setReadyForTalk,
 }: {
   patientId: string;
   socket: Socket | null;
@@ -30,6 +31,7 @@ const TscriptionContent = ({
   setIsLastChunkRef: Dispatch<SetStateAction<boolean>>;
   soapNotes: SoapNotesType | null;
   setSoapNotes: Dispatch<SetStateAction<SoapNotesType | null>>;
+  setReadyForTalk: Dispatch<SetStateAction<boolean>>;
 }) => {
   const [transcribedText, setTranscribedText] = useState("");
   const { user, isLoaded } = useUser();
@@ -109,6 +111,7 @@ ${data.soap_notes.plan}
           return;
         }
         toast.success("Data updated to rag embeddings");
+        setReadyForTalk(true);
       } catch (error) {
         console.log(error);
       }

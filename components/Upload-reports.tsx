@@ -71,8 +71,9 @@ export default function UploadReports({ patientId, onUploadSuccess }: Props) {
           )}
           <div>
             <p className="font-medium">Upload Reports</p>
-            <p className="text-sm text-muted-foreground">
-              Upload lab reports, images, videos, audio, or documents to attach with the patient session.
+            <p className="text-sm mt-1 text-muted-foreground">
+              Upload lab reports, images, videos, audio, or documents to attach with the
+              patient session.
             </p>
           </div>
         </div>
@@ -100,10 +101,10 @@ export default function UploadReports({ patientId, onUploadSuccess }: Props) {
           </div>
 
           {message && (
-            <p className={status === "error" ? "text-red-600" : "text-green-600"}>{message}</p>
+            <p className={status === "error" ? "text-red-600" : "text-green-600"}>
+              {message}
+            </p>
           )}
-
-          
         </div>
       </div>
     </form>
