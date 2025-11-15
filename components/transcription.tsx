@@ -1,22 +1,23 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Bot, Pause, Play, Stethoscope, StopCircle } from "lucide-react";
-import PatientSessionModal, { PatientData } from "@/components/PatientSessionModal"; // Import the new modal
+import { Bot, Play, Stethoscope, StopCircle, Loader2 } from "lucide-react";
+import PatientSessionModal, {
+  PatientData,
+} from "@/components/PatientSessionModal"; // Import the new modal
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TscriptionContent, { SoapNotesType } from "./tscription-content";
 import Recording from "@/components/recording";
 import UploadReports from "@/components/Upload-reports";
 import { type Socket } from "socket.io-client";
 import PatientDetails from "@/components/PatientDetails";
-import ReportsDrawer from "./reportsdrawer";
 import { MorphSurface } from "@/components/smoothui/ai-input";
 import { Button } from "./ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -35,6 +36,8 @@ export default function DoctorInputPage({ socket }: { socket: Socket | null }) {
   const chunksRef = useRef<BlobPart[]>([]);
 
   const [recordingAskAI, setRecordingAskAI] = useState(false);
+  const [awaitingAIResponse, setAwaitingAIResponse] = useState(false);
+  const [botSpeaking, setBotSpeaking] = useState(false);
   const { user, isLoaded } = useUser();
   const handleSessionStart = (patient: PatientData) => {
     setPatientName(patient.name);
@@ -56,6 +59,10 @@ export default function DoctorInputPage({ socket }: { socket: Socket | null }) {
 
       const audioUrl = URL.createObjectURL(blob);
       const audio = new Audio(audioUrl);
+      setAwaitingAIResponse(false);
+      audio.addEventListener("playing", () => setBotSpeaking(true));
+      audio.addEventListener("ended", () => setBotSpeaking(false));
+      audio.addEventListener("error", () => setBotSpeaking(false));
       audio.play();
     };
     socket.on(eventName, handler);
@@ -69,7 +76,10 @@ export default function DoctorInputPage({ socket }: { socket: Socket | null }) {
     <>
       {isLoaded ? (
         <main className="bg-background text-foreground min-h-screen">
-          <PatientSessionModal isOpen={isModalOpen} onSessionStart={handleSessionStart} />
+          <PatientSessionModal
+            isOpen={isModalOpen}
+            onSessionStart={handleSessionStart}
+          />
 
           <div className="max-w-5xl mx-auto p-4 md:p-8 space-y-6">
             <div className="flex justify-between items-center">
@@ -110,8 +120,8 @@ export default function DoctorInputPage({ socket }: { socket: Socket | null }) {
                   <CardHeader>
                     <CardTitle>Ask AI</CardTitle>
                     <p className="text-sm text-muted-foreground">
-                      Talk with AI and get suggestions and information related to the
-                      patient.
+                      Talk with AI and get suggestions and information related
+                      to the patient.
                     </p>
                   </CardHeader>
                   <CardContent className="flex justify-end">
@@ -142,12 +152,15 @@ export default function DoctorInputPage({ socket }: { socket: Socket | null }) {
                                 onClick={async () => {
                                   try {
                                     const stream =
-                                      await navigator.mediaDevices.getUserMedia({
-                                        audio: true,
-                                      });
+                                      await navigator.mediaDevices.getUserMedia(
+                                        {
+                                          audio: true,
+                                        }
+                                      );
                                     const recorder = new MediaRecorder(stream);
                                     recorderRef.current = recorder;
                                     setRecordingAskAI(true);
+                                    setAwaitingAIResponse(true);
                                     console.log("🎙️ Started recording loop");
 
                                     recorder.ondataavailable = async (e) => {
@@ -168,6 +181,7 @@ export default function DoctorInputPage({ socket }: { socket: Socket | null }) {
                                       console.log("ask AI stopped");
                                       toast.info("Ask AI stopped");
                                       setRecordingAskAI(false);
+                                      setAwaitingAIResponse(false);
                                       recorder.stop();
                                     };
 
@@ -191,6 +205,18 @@ export default function DoctorInputPage({ socket }: { socket: Socket | null }) {
                                 <StopCircle className="mr-2 h-4 w-4" /> Stop
                               </Button>
                             </div>
+                            {awaitingAIResponse && (
+                              <div className="mt-6 flex items-center gap-2 text-sm text-muted-foreground">
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <span>Waiting for AI response…</span>
+                              </div>
+                            )}
+                            {botSpeaking && (
+                              <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <span>Speaking…</span>
+                              </div>
+                            )}
                             {/* {(recordingStatus === "recording" || recordingStatus === "paused") && (
                 <div className="flex gap-4 absolute bottom-0 right-0">
                   {recordingStatus === "recording" ? (
@@ -233,7 +259,32 @@ export default function DoctorInputPage({ socket }: { socket: Socket | null }) {
               </CardHeader>
               <CardContent>
                 {soapNotes === null ? (
-                  <div className="border border-dashed border-muted-foreground rounded-md p-4 min-h-[100px]"></div>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-3 w-full" />
+                      <Skeleton className="h-3 w-11/12" />
+                      <Skeleton className="h-3 w-10/12" />
+                    </div>
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-3 w-full" />
+                      <Skeleton className="h-3 w-11/12" />
+                      <Skeleton className="h-3 w-10/12" />
+                    </div>
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-3 w-full" />
+                      <Skeleton className="h-3 w-11/12" />
+                      <Skeleton className="h-3 w-10/12" />
+                    </div>
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-3 w-full" />
+                      <Skeleton className="h-3 w-11/12" />
+                      <Skeleton className="h-3 w-10/12" />
+                    </div>
+                  </div>
                 ) : (
                   <div>
                     <section className="p-2">
