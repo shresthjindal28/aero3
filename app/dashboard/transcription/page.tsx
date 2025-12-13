@@ -1,25 +1,13 @@
-"use client";
+import ReportsDrawer from "@/components/transcriptionComponents/reports/ReportsDrawer.server";
+import TranscriptionClient from "./TranscriptionClient";
 
-import Transcription from "@/components/transcription";
-import React, { useEffect } from "react";
-import { useSocket } from "@/lib/socket";
+export default function TranscriptionPage() {
+  const patientNumber = "PAT-581569"; // later from params/session
 
-const TranscriptionPage = () => {
-  const socket = useSocket();
-  useEffect(() => {
-    if (!socket) return;
-    const onConnect = () => {};
-    socket.on("connect", onConnect);
-    return () => {
-      socket.off("connect", onConnect);
-      socket.disconnect();
-    };
-  }, [socket]);
   return (
     <div className="min-w-[80vw] mx-auto p-4 md:p-8 flex items-center flex-col justify-between">
-      <Transcription socket={socket} />
+      <TranscriptionClient />
+      <ReportsDrawer patientId={patientNumber} />
     </div>
   );
-};
-
-export default TranscriptionPage;
+}

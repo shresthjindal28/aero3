@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// Store transcript on User. Audio upload via Cloudinary is currently disabled.
 export async function POST(req: Request) {
   try {
     const { patientId, audioBase64, transcript } = (await req.json()) as {
@@ -14,16 +13,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "patientId is required" }, { status: 400 });
     }
 
-    // Audio upload removed; do not persist external audio URL.
     const audioUrl: string | null = null;
 
-    // Fetch existing transcript and concatenate with the new one (if provided)
     const existing = await prisma.user.findUnique({
       where: { user_id: patientId },
       select: { transcripted_data: true },
     });
 
-    // Build update payload; only update transcript if a new one was provided
     const dataToUpdate: { audio_url: string | null; transcripted_data?: string | null } = {
       audio_url: audioUrl,
     };

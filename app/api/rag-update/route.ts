@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import { randomUUID } from "node:crypto";
 
 export async function POST(req: Request) {
   const fd = await req.formData();

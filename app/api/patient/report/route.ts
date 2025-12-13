@@ -4,7 +4,6 @@ import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 
-// Helper to sanitize a display name into a Cloudinary-friendly public_id
 function slugify(name: string): string {
   return name
     .toLowerCase()
@@ -35,7 +34,6 @@ export async function POST(req: Request) {
     const mime = file.type || "";
     let resourceType: "image" | "video" | "raw";
     if (mime === "application/pdf") {
-      // Upload PDFs as raw
       resourceType = "raw";
     } else if (mime.startsWith("image/")) {
       resourceType = "image";

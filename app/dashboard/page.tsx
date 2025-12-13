@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -75,9 +74,7 @@ const DashboardPage = () => {
         <div className="flex items-center gap-3">
           <Avatar className="h-10 w-10">
             <AvatarImage src={user?.imageUrl} alt={user?.firstName || "User"} />
-            <AvatarFallback>
-              {user?.firstName?.[0]}
-            </AvatarFallback>
+            <AvatarFallback>{user?.firstName?.[0]}</AvatarFallback>
           </Avatar>
           <div>
             <h1 className="text-2xl font-bold">

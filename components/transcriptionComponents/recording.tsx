@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { motion } from "framer-motion";
-import RippleGrid from "./RippleGrid";
+import RippleGrid from "../RippleGrid";
 import { type Socket } from "socket.io-client";
 import { useUser } from "@clerk/nextjs";
 

@@ -4,14 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import { Bot, Play, Stethoscope, StopCircle, Loader2 } from "lucide-react";
 import PatientSessionModal, {
   PatientData,
-} from "@/components/PatientSessionModal"; 
+} from "@/components/PatientSessionModal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TscriptionContent, { SoapNotesType } from "./tscription-content";
-import Recording from "@/components/recording";
-import UploadReports from "@/components/Upload-reports";
+import Recording from "@/components/transcriptionComponents/recording";
+import UploadReports from "@/components/transcriptionComponents/Upload-reports";
 import { type Socket } from "socket.io-client";
-import PatientDetails from "@/components/PatientDetails";
-import { MorphSurface } from "@/components/smoothui/ai-input";
+import PatientDetails from "@/components/transcriptionComponents/PatientDetails";
 import { Button } from "./ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
@@ -24,6 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import SiriOrb from "./smoothui/siri-orb";
 import { useUser } from "@clerk/nextjs";
+// import ReportsDrawer from "@/components/transcriptionComponents/reports/ReportsDrawer.server";
 
 export default function DoctorInputPage({ socket }: { socket: Socket | null }) {
   const [patientNumber, setPatientNumber] = useState(() => {
@@ -98,7 +98,6 @@ export default function DoctorInputPage({ socket }: { socket: Socket | null }) {
     <>
       {isLoaded ? (
         <main className="bg-background text-foreground min-h-screen">
-
           <PatientSessionModal
             isOpen={isModalOpen}
             onSessionStart={handleSessionStart}
@@ -240,23 +239,6 @@ export default function DoctorInputPage({ socket }: { socket: Socket | null }) {
                                 <span>Speaking…</span>
                               </div>
                             )}
-                            {/* {(recordingStatus === "recording" || recordingStatus === "paused") && (
-                <div className="flex gap-4 absolute bottom-0 right-0">
-                  {recordingStatus === "recording" ? (
-                    <Button onClick={pauseRecording} variant="outline">
-                      <Pause className="mr-2 h-4 w-4" /> Pause
-                    </Button>
-                  ) : (
-                    <Button onClick={resumeRecording} variant="outline">
-                      <Play className="mr-2 h-4 w-4" /> Resume
-                    </Button>
-                  )}
-
-                  <Button onClick={stopRecording} variant="destructive">
-                    <StopCircle className="mr-2 h-4 w-4" /> Stop
-                  </Button>
-                </div>
-              )} */}
                           </div>
                         </div>
                       </DialogContent>
@@ -264,17 +246,6 @@ export default function DoctorInputPage({ socket }: { socket: Socket | null }) {
                   </CardContent>
                 </Card>
               </div>
-              {/* <div className="space-y-6">
-            <UploadReports patientId={patientNumber} />
-            <Card>
-              <CardHeader>
-                <CardTitle>Patient Reports</CardTitle>
-              </CardHeader>
-              <CardContent className="flex items-center justify-around">
-                <ReportsDrawer patientId={patientNumber} />
-              </CardContent>
-            </Card>
-          </div> */}
             </div>
             <Card>
               <CardHeader>
@@ -337,7 +308,6 @@ export default function DoctorInputPage({ socket }: { socket: Socket | null }) {
                         {soapNotes.plan}
                       </p>
                     </section>
-                    
                   </div>
                 )}
               </CardContent>

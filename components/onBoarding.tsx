@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Avatar } from "@/components/ui/avatar";
 import { Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function DoctorOnboarding() {
   const router = useRouter();
@@ -103,10 +104,13 @@ export default function DoctorOnboarding() {
           <div className="flex items-center space-x-4">
             <Avatar className="w-24 h-24 rounded-lg">
               {profilePreview ? (
-                <img
+                <Image
                   src={profilePreview}
                   alt="profile preview"
-                  className="w-full h-full object-cover rounded-lg"
+                  width={96}
+                  height={96}
+                  unoptimized
+                  className="rounded-lg object-cover"
                 />
               ) : (
                 <div className="flex items-center justify-center w-full h-full bg-muted text-muted-foreground">
