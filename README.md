@@ -35,9 +35,16 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
+## Database (Supabase)
+
+1. Create a project at [supabase.com](https://supabase.com).
+2. In **SQL Editor**, run **`supabase/schema.sql`** (full Airo clinical schema from `airo_schema.sql`).
+3. Copy **Project URL**, **anon key**, and **service_role key** into `.env.local`.
+
+Tables include: `hospitals`, `departments`, `doctors`, `patients`, `consultations`, `soap_notes`, `reports`, `prescriptions`, `diagnoses`, `diagnostic_suggestions`, `ai_feedback`, `audit_logs`.
+
 ## Patient & Audio Features
 
-- Patient creation and lookup are available under `/api/patient`.
-  - `POST /api/patient` with `{ name, phone?, address? }` creates and stores a patient.
-  - `GET /api/patient?id=PAT-XXXXXX` verifies an existing patient ID.
-- Recorded audio is not uploaded to external storage. `/api/audio` stores transcripts on the patient record and leaves `audio_url` unset.
+- `POST /api/patient` — creates a **patient** (UUID) + **consultation** (requires signed-in, onboarded doctor).
+- `GET /api/patient?id=<uuid>` — load patient by `patient_id`.
+- Transcripts and SOAP notes are stored on **consultations** / **soap_notes** (not legacy `user_id` / `PAT-*` ids).

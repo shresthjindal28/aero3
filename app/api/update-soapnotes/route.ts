@@ -1,50 +1,89 @@
-import { prisma } from "@/lib/prisma";
+import { currentUser } from "@clerk/nextjs/server";
+import { getSupabaseAdmin } from "@/lib/supabase/server";
+import { supabaseErrorResponse } from "@/lib/supabase/api-response";
+import {
+  ensureDoctorHospital,
+  getDoctorByClerkUser,
+  getOrCreateConsultation,
+} from "@/lib/supabase/helpers";
 import { NextResponse } from "next/server";
-import { randomUUID } from "node:crypto";
 
 export async function POST(req: Request) {
   const fd = await req.formData();
   if (!fd) return NextResponse.json({ error: "fd not found" }, { status: 402 });
 
-  const soap_notes = fd.get("soap_notes") as string | null;
   const patient_id = fd.get("patient_id") as string | null;
   const transcribed_text = fd.get("transcribed_text") as string | null;
-  console.log(soap_notes);
-  console.log([patient_id]);
+  const subjective = fd.get("subjective") as string | null;
+  const objective = fd.get("objective") as string | null;
+  const assessment = fd.get("assessment") as string | null;
+  const plan = fd.get("plan") as string | null;
+  const consultation_id = fd.get("consultation_id") as string | null;
 
-  if (!soap_notes || !patient_id || !transcribed_text)
-    return NextResponse.json({ error: "proper fields not found" }, { status: 402 });
+  if (!patient_id || !transcribed_text) {
+    return NextResponse.json({ error: "patient_id and transcribed_text required" }, { status: 402 });
+  }
+
+  if (!subjective && !objective && !assessment && !plan) {
+    return NextResponse.json({ error: "SOAP sections required" }, { status: 402 });
+  }
 
   try {
-    const updated = await prisma.user.update({
-      where: {
-        user_id: patient_id,
-      },
-      data: {
-        transcripted_data: {
-          push: transcribed_text,
-        },
-        soapNotes: {
-          create: {
-            id: randomUUID(),
-            note: soap_notes,
-          },
-        },
-      },
-    });
-    if (!updated) {
-      return NextResponse.json({ error: "Could Not update" }, { status: 500 });
+    const clerkUser = await currentUser();
+    if (!clerkUser) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    return NextResponse.json({ status: 200 });
-  } catch (error: unknown) {
-    console.error("Update SOAP notes error:", error);
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json(
-      {
-        error: "Internal Server Error",
-        message,
-      },
-      { status: 500 }
-    );
+
+    const doctor = await getDoctorByClerkUser(clerkUser);
+    if (!doctor) {
+      return NextResponse.json({ error: "Doctor not found" }, { status: 403 });
+    }
+
+    const hospitalId = await ensureDoctorHospital(doctor);
+    const activeConsultationId =
+      consultation_id ??
+      (await getOrCreateConsultation({
+        doctorId: doctor.doctor_id,
+        patientId: patient_id,
+        hospitalId,
+      }));
+
+    const supabase = getSupabaseAdmin();
+
+    const { data: consultation, error: cErr } = await supabase
+      .from("consultations")
+      .select("transcript_cleaned")
+      .eq("consultation_id", activeConsultationId)
+      .maybeSingle();
+
+    if (cErr) return supabaseErrorResponse(cErr, "Failed to load consultation");
+
+    const transcript_cleaned = consultation?.transcript_cleaned
+      ? `${consultation.transcript_cleaned}\n${transcribed_text}`
+      : transcribed_text;
+
+    const { error: uErr } = await supabase
+      .from("consultations")
+      .update({ transcript_cleaned, transcript_raw: transcript_cleaned })
+      .eq("consultation_id", activeConsultationId);
+
+    if (uErr) return supabaseErrorResponse(uErr, "Failed to update transcript");
+
+    const { error: soapError } = await supabase.from("soap_notes").insert({
+      consultation_id: activeConsultationId,
+      doctor_id: doctor.doctor_id,
+      patient_id,
+      subjective,
+      objective,
+      assessment,
+      plan,
+      ai_model_version: "med-llm",
+    });
+
+    if (soapError) return supabaseErrorResponse(soapError, "Failed to save SOAP note");
+
+    return NextResponse.json({ status: 200, consultation_id: activeConsultationId });
+  } catch (error) {
+    return supabaseErrorResponse(error, "Failed to update SOAP notes");
   }
 }

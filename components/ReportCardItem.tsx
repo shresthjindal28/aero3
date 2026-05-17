@@ -91,7 +91,7 @@ export default function ReportCardList({ reports }: ReportCardItemProps) {
                     className="mt-2 text-sm text-center"
                     title={report.note || "PDF Document"}
                   >
-                    {report.note ? report.note : "PDF"}
+                    {report.title || report.note || "PDF"}
                   </span>
                 </div>
               ) : isImage && previewImageUrl ? (

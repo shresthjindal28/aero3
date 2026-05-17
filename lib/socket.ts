@@ -4,7 +4,7 @@ import { io, Socket } from "socket.io-client";
 import { useUser } from "@clerk/nextjs";
 import { useEffect, useRef, useState } from "react";
 
-const URL = "http://localhost:3500";
+const URL = process.env.NEXT_PUBLIC_SOCKET_URL ?? "http://localhost:3500";
 
 export function useSocket() {
   const [socket, setSocket] = useState<Socket | null>(null);

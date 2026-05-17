@@ -28,21 +28,35 @@ interface PatientSessionModalProps {
   onSessionStart: (patient: PatientData) => void;
 }
 
+async function readApiError(res: Response, fallback: string): Promise<string> {
+  try {
+    const data = await res.json();
+    if (data.code === "DB_SCHEMA_MISSING") {
+      return "Database not set up. Run supabase/schema.sql in your Supabase SQL Editor.";
+    }
+    if (data.details) return `${data.error ?? fallback}: ${data.details}`;
+    if (data.error) return String(data.error);
+  } catch {
+    /* ignore */
+  }
+  return fallback;
+}
+
 export default function PatientSessionModal({
   isOpen,
   onSessionStart,
 }: PatientSessionModalProps) {
   const router = useRouter();
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
 
   const [modalPatientId, setModalPatientId] = useState("");
   const [modalPatientName, setModalPatientName] = useState("");
   const [modalPatientPhone, setModalPatientPhone] = useState("");
   const [modalPatientAddress, setModalPatientAddress] = useState("");
   const [loadError, setLoadError] = useState("");
+  const [registerError, setRegisterError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // ===== LOAD EXISTING PATIENT =====
   const handleLoadPatient = async () => {
     setLoadError("");
     if (!modalPatientId.trim()) return;
@@ -57,7 +71,7 @@ export default function PatientSessionModal({
         if (res.status === 404) {
           setLoadError("No patient found. Please create a new user.");
         } else {
-          setLoadError("Failed to verify patient. Try again.");
+          setLoadError(await readApiError(res, "Failed to verify patient. Try again."));
         }
         return;
       }
@@ -73,8 +87,6 @@ export default function PatientSessionModal({
       };
 
       onSessionStart(patientData);
-
-      // ✅ REDIRECT
       router.push(`/dashboard/transcription/${patientData.id}`);
     } catch {
       setLoadError("Network error. Please retry.");
@@ -83,8 +95,19 @@ export default function PatientSessionModal({
     }
   };
 
-  // ===== REGISTER NEW PATIENT =====
   const handleRegisterNewPatient = async () => {
+    setRegisterError("");
+
+    if (!isLoaded) {
+      setRegisterError("Loading your account…");
+      return;
+    }
+
+    if (!user?.id) {
+      setRegisterError("You must be signed in to register a patient.");
+      return;
+    }
+
     if (!modalPatientName.trim() || !modalPatientPhone.trim()) return;
 
     try {
@@ -96,11 +119,13 @@ export default function PatientSessionModal({
           name: modalPatientName.trim(),
           phone: modalPatientPhone.trim(),
           address: modalPatientAddress.trim() || undefined,
-          treatedby: user?.id,
         }),
       });
 
-      if (!res.ok) return;
+      if (!res.ok) {
+        setRegisterError(await readApiError(res, "Failed to register patient."));
+        return;
+      }
 
       const data = await res.json();
       const patient = data.patient;
@@ -113,9 +138,9 @@ export default function PatientSessionModal({
       };
 
       onSessionStart(patientData);
-
-      // ✅ REDIRECT
       router.push(`/dashboard/transcription/${patientData.id}`);
+    } catch {
+      setRegisterError("Network error. Please retry.");
     } finally {
       setIsLoading(false);
     }
@@ -141,7 +166,6 @@ export default function PatientSessionModal({
             <TabsTrigger value="new">New Patient</TabsTrigger>
           </TabsList>
 
-          {/* LOAD */}
           <TabsContent value="load">
             <div className="space-y-4 py-4">
               <div className="space-y-2">
@@ -150,7 +174,7 @@ export default function PatientSessionModal({
                   id="patientId"
                   value={modalPatientId}
                   onChange={(e) => setModalPatientId(e.target.value)}
-                  placeholder="PAT-123456"
+                  placeholder="Patient UUID from registration"
                 />
               </div>
 
@@ -171,7 +195,6 @@ export default function PatientSessionModal({
             </Button>
           </TabsContent>
 
-          {/* NEW */}
           <TabsContent value="new">
             <div className="space-y-4 py-4">
               <div className="space-y-2">
@@ -195,11 +218,20 @@ export default function PatientSessionModal({
                   onChange={(e) => setModalPatientAddress(e.target.value)}
                 />
               </div>
+
+              {registerError && (
+                <Alert variant="warning">
+                  <AlertTitle>Error</AlertTitle>
+                  <AlertDescription>{registerError}</AlertDescription>
+                </Alert>
+              )}
             </div>
 
             <Button
               onClick={handleRegisterNewPatient}
               disabled={
+                !isLoaded ||
+                !user?.id ||
                 !modalPatientName.trim() ||
                 !modalPatientPhone.trim() ||
                 isLoading

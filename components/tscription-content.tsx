@@ -49,10 +49,14 @@ const TscriptionContent = ({
       fd.append("conversation_text", transcribedText);
       try {
         const data = await (
-          await fetch(" https://med-llm.onrender.com/generate-soap", {
-            method: "POST",
-            body: fd,
-          })
+          await fetch(
+            process.env.NEXT_PUBLIC_MED_LLM_URL ??
+              "https://med-llm.onrender.com/generate-soap",
+            {
+              method: "POST",
+              body: fd,
+            }
+          )
         ).json();
         console.log(data.soap_notes);
         if (data.soap_notes) setSoapNotes(data.soap_notes as SoapNotesType);
@@ -66,22 +70,13 @@ const TscriptionContent = ({
         }
         fd.append("patient_id", patientId);
         fd.append("transcribed_text", transcribedText);
+        fd.append("subjective", data.soap_notes.subjective ?? "");
+        fd.append("objective", data.soap_notes.objective ?? "");
+        fd.append("assessment", data.soap_notes.assessment ?? "");
+        fd.append("plan", data.soap_notes.plan ?? "");
         fd.append(
           "soap_notes",
-          `
-date: ${new Date().toLocaleDateString()}\n
-Subjective:
-${data.soap_notes.subjective}
-
-Objective:
-${data.soap_notes.objective}
-
-Assessment:
-${data.soap_notes.assessment}
-
-Plan:
-${data.soap_notes.plan}
-`
+          `Subjective:\n${data.soap_notes.subjective}\n\nObjective:\n${data.soap_notes.objective}\n\nAssessment:\n${data.soap_notes.assessment}\n\nPlan:\n${data.soap_notes.plan}`
         );
 
         const response = await fetch("/api/update-soapnotes", {

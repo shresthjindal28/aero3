@@ -1,7 +1,9 @@
 import "server-only";
-import { prisma } from "../prisma";
 import { currentUser } from "@clerk/nextjs/server";
+import { getDoctorByClerkUser } from "@/lib/supabase/helpers";
 
-// export const getDoctorId=async()=>{
-//     prisma.doctor.
-// }
+export async function getCurrentDoctor() {
+  const user = await currentUser();
+  if (!user) return null;
+  return getDoctorByClerkUser(user);
+}

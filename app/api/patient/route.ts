@@ -1,56 +1,70 @@
 import { NextResponse } from "next/server";
-import { generatePatientId } from "@/lib/generateId";
-import { prisma } from "@/lib/prisma";
+import { currentUser } from "@clerk/nextjs/server";
+import { getSupabaseAdmin } from "@/lib/supabase/server";
+import { supabaseErrorResponse } from "@/lib/supabase/api-response";
+import {
+  ensureDoctorHospital,
+  getDoctorByClerkUser,
+  getOrCreateConsultation,
+  mapPatientForClient,
+} from "@/lib/supabase/helpers";
 
-// Create new patient
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { name, phone, address, treatedby } = body || {};
+    const clerkUser = await currentUser();
+    if (!clerkUser) {
+      return NextResponse.json({ error: "Sign in required" }, { status: 401 });
+    }
 
-    if (!name || typeof name !== "string" || !treatedby) {
+    const body = await req.json();
+    const { name, phone, address } = body || {};
+
+    if (!name || typeof name !== "string") {
+      return NextResponse.json({ error: "Patient name is required" }, { status: 400 });
+    }
+
+    const doctor = await getDoctorByClerkUser(clerkUser);
+    if (!doctor) {
       return NextResponse.json(
-        { error: "Patient name is required & doctor id is req" },
-        { status: 400 }
+        { error: "Complete doctor onboarding before registering patients." },
+        { status: 403 }
       );
     }
 
-    const userId = generatePatientId();
+    const hospitalId = await ensureDoctorHospital(doctor);
+    const supabase = getSupabaseAdmin();
 
-    // const user = await prisma.user.create({
-    //   data: {
-    //     user_id: userId,
-    //     user_name: name,
-    //     user_mobile: phone ?? null,
-    //     address: address ?? null,
-
-    //   } as any,
-    // });
-
-    const user = await prisma.user.create({
-      data: {
-        user_id: userId,
-        user_name: name,
-        user_mobile: phone ?? null,
+    const { data: patient, error } = await supabase
+      .from("patients")
+      .insert({
+        full_name: name,
+        phone: phone ?? null,
         address: address ?? null,
-        treated_by: treatedby,
-      },
-    });
-    const patient = {
-      user_id: user.user_id,
-      user_name: user.user_name,
-      user_mobile: user.user_mobile ?? null,
-      address: user.address ?? null,
-    };
+        hospital_id: hospitalId,
+      })
+      .select()
+      .single();
 
-    return NextResponse.json({ success: true, patient }, { status: 201 });
+    if (error) return supabaseErrorResponse(error, "Failed to create patient");
+
+    const consultationId = await getOrCreateConsultation({
+      doctorId: doctor.doctor_id,
+      patientId: patient.patient_id,
+      hospitalId,
+    });
+
+    return NextResponse.json(
+      {
+        success: true,
+        patient: { ...mapPatientForClient(patient), consultation_id: consultationId },
+      },
+      { status: 201 }
+    );
   } catch (error) {
-    console.error("POST /api/patient error", error);
-    return NextResponse.json({ error: "Failed to create patient" }, { status: 500 });
+    return supabaseErrorResponse(error, "Failed to create patient");
   }
 }
 
-// Fetch patient by ID: /api/patient?id=PAT-123456
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
@@ -59,24 +73,20 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "id is required" }, { status: 400 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { user_id: id },
-    });
+    const supabase = getSupabaseAdmin();
+    const { data: patient, error } = await supabase
+      .from("patients")
+      .select("*")
+      .eq("patient_id", id)
+      .maybeSingle();
 
-    if (!user) {
+    if (error) return supabaseErrorResponse(error, "Failed to fetch patient");
+    if (!patient) {
       return NextResponse.json({ error: "Patient not found" }, { status: 404 });
     }
 
-    const patient = {
-      user_id: user.user_id,
-      user_name: user.user_name,
-      user_mobile: user.user_mobile ?? null,
-      address: user.address ?? null,
-    };
-
-    return NextResponse.json({ patient }, { status: 200 });
+    return NextResponse.json({ patient: mapPatientForClient(patient) }, { status: 200 });
   } catch (error) {
-    console.error("GET /api/patient error", error);
-    return NextResponse.json({ error: "Failed to fetch patient" }, { status: 500 });
+    return supabaseErrorResponse(error, "Failed to fetch patient");
   }
 }

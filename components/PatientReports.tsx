@@ -6,6 +6,7 @@ import ReportCardList from "./ReportCardItem";
 export interface ReportItem {
   id: string;
   file_url: string;
+  title?: string;
   note?: string | null;
   created_at: string;
 }

@@ -1,4 +1,5 @@
-import { prisma } from "@/lib/prisma";
+import { getSupabaseAdmin } from "@/lib/supabase/server";
+import { supabaseErrorResponse } from "@/lib/supabase/api-response";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
@@ -8,49 +9,41 @@ export async function POST(req: Request) {
   const soap_notes = fd.get("soap_notes") as string | null;
   const patient_id = fd.get("patient_id") as string | null;
   const transcribed_text = fd.get("transcribed_text") as string | null;
-  console.log(soap_notes);
-  console.log([patient_id]);
 
-  if (!soap_notes || !patient_id || !transcribed_text)
+  if (!soap_notes || !patient_id || !transcribed_text) {
     return NextResponse.json({ error: "proper fields not found" }, { status: 402 });
+  }
 
   try {
-    const user = await prisma.user.findUnique({
-      where: {
-        user_id: patient_id,
-      },
-      select: {
-        user_name: true,
-      },
-    });
-    if (!user) {
-      return NextResponse.json({ error: "Patient Not found" }, { status: 404 });
+    const supabase = getSupabaseAdmin();
+    const { data: patient, error } = await supabase
+      .from("patients")
+      .select("full_name")
+      .eq("patient_id", patient_id)
+      .maybeSingle();
+
+    if (error) return supabaseErrorResponse(error, "Failed to load patient");
+    if (!patient) {
+      return NextResponse.json({ error: "Patient not found" }, { status: 404 });
     }
-    const response = await fetch("https://771fd7603723.ngrok-free.app/soap-notes", {
+
+    const ragBase = process.env.RAG_URL ?? "https://771fd7603723.ngrok-free.app";
+    const response = await fetch(`${ragBase.replace(/\/$/, "")}/soap-notes`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        patient_id: patient_id,
-        soap_notes: soap_notes,
+        patient_id,
+        soap_notes,
         date_time: new Date().toUTCString(),
-        patient_name: user.user_name,
+        patient_name: patient.full_name,
       }),
     });
+
     const body = await response.json();
     if (body.status === "processing") return NextResponse.json({ status: 200 });
-    else
-      NextResponse.json({ error: "Error while embedding data to rag" }, { status: 500 });
-  } catch (error: unknown) {
-    console.error("Update SOAP notes error:", error);
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json(
-      {
-        error: "Internal Server Error",
-        message,
-      },
-      { status: 500 }
-    );
+
+    return NextResponse.json({ error: "Error while embedding data to rag" }, { status: 500 });
+  } catch (error) {
+    return supabaseErrorResponse(error, "RAG update failed");
   }
 }
