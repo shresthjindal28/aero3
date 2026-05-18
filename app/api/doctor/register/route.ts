@@ -1,27 +1,65 @@
 import { NextResponse } from "next/server";
-import { currentUser } from "@clerk/nextjs/server";
+import { getUserFromRequest } from "@/lib/clerk/request-auth";
 import cloudinary from "@/lib/cloudinary";
+
+export const runtime = "nodejs";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
 import { supabaseErrorResponse } from "@/lib/supabase/api-response";
 
-async function uploadFileToCloudinary(file: File, folder: string) {
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const base64 = buffer.toString("base64");
-  const dataUri = `data:${file.type};base64,${base64}`;
+function formatCloudinaryError(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (err && typeof err === "object") {
+    const e = err as { message?: string; error?: { message?: string } };
+    if (typeof e.message === "string" && e.message) return e.message;
+    if (typeof e.error?.message === "string" && e.error.message) {
+      return e.error.message;
+    }
+  }
+  try {
+    return JSON.stringify(err);
+  } catch {
+    return "Unknown upload error";
+  }
+}
 
-  const result = await cloudinary.uploader.upload(dataUri, {
-    folder,
-    resource_type: "auto",
-    use_filename: true,
-    filename_override: file.name,
-    invalidate: true,
-  });
-  return result.secure_url;
+async function uploadFileToCloudinary(
+  file: File,
+  folder: string
+): Promise<{ url: string | null; error?: string }> {
+  const hasCloudinary =
+    process.env.CLOUDINARY_URL ||
+    (process.env.CLOUDINARY_CLOUD_NAME &&
+      process.env.CLOUDINARY_API_KEY &&
+      process.env.CLOUDINARY_API_SECRET);
+
+  if (!hasCloudinary) {
+    return {
+      url: null,
+      error:
+        "Cloudinary is not configured. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET in .env.local",
+    };
+  }
+
+  try {
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const base64 = buffer.toString("base64");
+    const dataUri = `data:${file.type || "application/octet-stream"};base64,${base64}`;
+
+    const result = await cloudinary.uploader.upload(dataUri, {
+      folder,
+      resource_type: "auto",
+    });
+    return { url: result.secure_url };
+  } catch (err) {
+    const message = formatCloudinaryError(err);
+    console.error(`Cloudinary upload failed (${folder}):`, message);
+    return { url: null, error: message };
+  }
 }
 
 export async function POST(req: Request) {
   try {
-    const clerkUser = await currentUser();
+    const clerkUser = await getUserFromRequest(req);
     if (!clerkUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -40,6 +78,7 @@ export async function POST(req: Request) {
       (formData.get("doctor_name") as string) || clerkUser.fullName || "Doctor";
     const certificate = formData.get("certificate") as File | null;
     const id_document = formData.get("id_document") as File | null;
+    const profile = formData.get("profile") as File | null;
 
     if (!phone_number) {
       return NextResponse.json({ error: "phone_number is required" }, { status: 400 });
@@ -51,18 +90,50 @@ export async function POST(req: Request) {
       );
     }
 
-    const [certificate_url, id_document_url] = await Promise.all([
+    const uploads: Promise<{ url: string | null; error?: string }>[] = [
       uploadFileToCloudinary(certificate, "doctors/certificates"),
       uploadFileToCloudinary(id_document, "doctors/id_documents"),
-    ]);
+    ];
+    if (profile?.size) {
+      uploads.push(uploadFileToCloudinary(profile, "doctors/profiles"));
+    }
+
+    const uploadResults = await Promise.all(uploads);
+    const certUpload = uploadResults[0];
+    const idUpload = uploadResults[1];
+    const profileUpload = profile?.size ? uploadResults[2] : undefined;
+
+    const uploadWarnings: string[] = [];
+    if (!certUpload.url) {
+      uploadWarnings.push(
+        certUpload.error
+          ? `Certificate upload failed: ${certUpload.error}`
+          : "Certificate was not uploaded."
+      );
+    }
+    if (!idUpload.url) {
+      uploadWarnings.push(
+        idUpload.error
+          ? `ID document upload failed: ${idUpload.error}`
+          : "ID document was not uploaded."
+      );
+    }
+    if (profile?.size && profileUpload && !profileUpload.url) {
+      uploadWarnings.push(
+        profileUpload.error
+          ? `Profile image upload failed: ${profileUpload.error}`
+          : "Profile image was not uploaded."
+      );
+    }
 
     const supabase = getSupabaseAdmin();
     const doctorRow = {
       email,
       full_name: doctor_name,
       phone: phone_number,
-      certificate_url,
-      id_document_url,
+      profile_image_url: profileUpload?.url ?? null,
+      certificate_url: certUpload.url,
+      id_document_url: idUpload.url,
       is_onboarded: true,
       specialization: "General Practice",
       last_login_at: new Date().toISOString(),
@@ -85,7 +156,14 @@ export async function POST(req: Request) {
 
     if (error) return supabaseErrorResponse(error, "Failed to register doctor");
 
-    return NextResponse.json({ success: true, doctor });
+    return NextResponse.json({
+      success: true,
+      doctor,
+      warnings:
+        uploadWarnings.length > 0
+          ? uploadWarnings
+          : undefined,
+    });
   } catch (err) {
     return supabaseErrorResponse(err, "Doctor registration failed");
   }

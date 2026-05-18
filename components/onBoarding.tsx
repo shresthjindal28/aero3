@@ -31,6 +31,8 @@ export default function DoctorOnboarding() {
   const [profilePreview, setProfilePreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitError, setSubmitError] = useState("");
+  const [submitWarnings, setSubmitWarnings] = useState<string[]>([]);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target;
@@ -70,6 +72,8 @@ export default function DoctorOnboarding() {
     }
 
     setSubmitting(true);
+    setSubmitError("");
+    setSubmitWarnings([]);
 
     try {
       const fd = new FormData();
@@ -77,16 +81,38 @@ export default function DoctorOnboarding() {
       fd.append("certificate", files.certificate as File);
       fd.append("id_document", files.id_document as File);
       fd.append("doctor_name", form.doctor_name);
+      if (files.profile) {
+        fd.append("profile", files.profile);
+      }
 
       const res = await fetch("/api/doctor/register", {
         method: "POST",
         body: fd,
       });
-      alert("Onboarding submitted successfully");
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        const detail =
+          data.details && typeof data.details === "string"
+            ? `: ${data.details}`
+            : "";
+        setSubmitError(
+          (data.error ? String(data.error) : "Failed to save doctor profile") +
+            detail
+        );
+        return;
+      }
+
+      if (Array.isArray(data.warnings) && data.warnings.length > 0) {
+        setSubmitWarnings(data.warnings);
+        return;
+      }
+
       router.push("/dashboard");
     } catch (err) {
       console.error(err);
-      alert("Submission failed");
+      setSubmitError("Network error. Check your connection and try again.");
     } finally {
       setSubmitting(false);
     }
@@ -215,8 +241,38 @@ export default function DoctorOnboarding() {
             )}
           </div>
 
+          {submitError && (
+            <p className="text-sm text-red-500" role="alert">
+              {submitError}
+            </p>
+          )}
+          {submitWarnings.length > 0 && (
+            <div className="rounded-md border border-amber-500/50 bg-amber-500/10 p-3 text-sm text-amber-200">
+              <p className="font-medium">Profile saved with warnings</p>
+              <ul className="mt-1 list-disc pl-5">
+                {submitWarnings.map((w) => (
+                  <li key={w}>{w}</li>
+                ))}
+              </ul>
+              <p className="mt-2 text-muted-foreground">
+                Fix CLOUDINARY_URL in .env.local if uploads should work. You can
+                continue to the dashboard.
+              </p>
+              <Button
+                type="button"
+                className="mt-3"
+                onClick={() => router.push("/dashboard")}
+              >
+                Continue to dashboard
+              </Button>
+            </div>
+          )}
+
           <div className="flex items-center justify-end">
-            <Button type="submit" disabled={submitting}>
+            <Button
+              type="submit"
+              disabled={submitting || submitWarnings.length > 0}
+            >
               {submitting ? "Submitting..." : "Create profile"}
             </Button>
           </div>

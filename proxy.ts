@@ -1,6 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-// Protect the dashboard and its subroutes
 const isProtectedRoute = createRouteMatcher(["/dashboard(.*)"]);
 
 export default clerkMiddleware(async (auth, req) => {
@@ -13,11 +12,10 @@ export default clerkMiddleware(async (auth, req) => {
 
 export const config = {
   matcher: [
-    // Clerk recommended matcher: app routes excluding Next internals & static assets
-    "/((?!.+\\.[\\w]+$|_next).*)",
+    // Pages + JSON API routes only. Multipart upload routes are excluded so
+    // Clerk middleware never runs on them (avoids locked request body).
+    "/((?!.+\\.[\\w]+$|_next|api/doctor/register|api/patient/report|api/update-soapnotes|api/rag-update).*)",
     "/",
-    // Always run Clerk for API & explicitly include dashboard
-    "/(api|trpc)(.*)",
     "/dashboard(.*)",
   ],
 };

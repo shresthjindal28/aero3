@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { currentUser } from "@clerk/nextjs/server";
+import { getUserFromRequest } from "@/lib/clerk/request-auth";
 import cloudinary from "@/lib/cloudinary";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
 import { supabaseErrorResponse } from "@/lib/supabase/api-response";
@@ -31,7 +31,7 @@ function inferReportType(mime: string): string {
 
 export async function POST(req: Request) {
   try {
-    const clerkUser = await currentUser();
+    const clerkUser = await getUserFromRequest(req);
     if (!clerkUser) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }

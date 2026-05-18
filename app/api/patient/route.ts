@@ -26,7 +26,16 @@ export async function POST(req: Request) {
     const doctor = await getDoctorByClerkUser(clerkUser);
     if (!doctor) {
       return NextResponse.json(
-        { error: "Complete doctor onboarding before registering patients." },
+        {
+          error:
+            "No doctor profile in the database for your sign-in email. Complete onboarding at /onboarding (profile must save successfully).",
+        },
+        { status: 403 }
+      );
+    }
+    if (!doctor.is_onboarded) {
+      return NextResponse.json(
+        { error: "Finish doctor onboarding at /onboarding before registering patients." },
         { status: 403 }
       );
     }

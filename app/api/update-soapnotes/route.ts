@@ -1,4 +1,6 @@
-import { currentUser } from "@clerk/nextjs/server";
+import { getUserFromRequest } from "@/lib/clerk/request-auth";
+
+export const runtime = "nodejs";
 import { getSupabaseAdmin } from "@/lib/supabase/server";
 import { supabaseErrorResponse } from "@/lib/supabase/api-response";
 import {
@@ -9,29 +11,30 @@ import {
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
-  const fd = await req.formData();
-  if (!fd) return NextResponse.json({ error: "fd not found" }, { status: 402 });
-
-  const patient_id = fd.get("patient_id") as string | null;
-  const transcribed_text = fd.get("transcribed_text") as string | null;
-  const subjective = fd.get("subjective") as string | null;
-  const objective = fd.get("objective") as string | null;
-  const assessment = fd.get("assessment") as string | null;
-  const plan = fd.get("plan") as string | null;
-  const consultation_id = fd.get("consultation_id") as string | null;
-
-  if (!patient_id || !transcribed_text) {
-    return NextResponse.json({ error: "patient_id and transcribed_text required" }, { status: 402 });
-  }
-
-  if (!subjective && !objective && !assessment && !plan) {
-    return NextResponse.json({ error: "SOAP sections required" }, { status: 402 });
-  }
-
   try {
-    const clerkUser = await currentUser();
+    const clerkUser = await getUserFromRequest(req);
     if (!clerkUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const fd = await req.formData();
+    const patient_id = fd.get("patient_id") as string | null;
+    const transcribed_text = fd.get("transcribed_text") as string | null;
+    const subjective = fd.get("subjective") as string | null;
+    const objective = fd.get("objective") as string | null;
+    const assessment = fd.get("assessment") as string | null;
+    const plan = fd.get("plan") as string | null;
+    const consultation_id = fd.get("consultation_id") as string | null;
+
+    if (!patient_id || !transcribed_text) {
+      return NextResponse.json(
+        { error: "patient_id and transcribed_text required" },
+        { status: 400 }
+      );
+    }
+
+    if (!subjective && !objective && !assessment && !plan) {
+      return NextResponse.json({ error: "SOAP sections required" }, { status: 400 });
     }
 
     const doctor = await getDoctorByClerkUser(clerkUser);

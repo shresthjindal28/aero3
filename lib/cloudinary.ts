@@ -1,15 +1,22 @@
 import { v2 as cloudinary } from "cloudinary";
 
-const cloudinaryUrl = process.env.CLOUDINARY_URL;
+const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+const apiKey = process.env.CLOUDINARY_API_KEY;
+const apiSecret = process.env.CLOUDINARY_API_SECRET;
 
-// Warn in development if CLOUDINARY_URL is missing
-if (!cloudinaryUrl && process.env.NODE_ENV !== "production") {
+if (cloudName && apiKey && apiSecret) {
+  cloudinary.config({
+    cloud_name: cloudName,
+    api_key: apiKey,
+    api_secret: apiSecret,
+    secure: true,
+  });
+} else if (!process.env.CLOUDINARY_URL && process.env.NODE_ENV !== "production") {
   console.warn(
-    "Missing CLOUDINARY_URL. Set CLOUDINARY_URL=cloudinary://API_KEY:API_SECRET@CLOUD_NAME in .env.local"
+    "Missing Cloudinary credentials. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET in .env.local (API Keys → airo-p1)."
   );
+} else {
+  cloudinary.config({ secure: true });
 }
-
-// Configure Cloudinary to use secure URLs; SDK reads CLOUDINARY_URL automatically
-cloudinary.config({ secure: true });
 
 export default cloudinary;
