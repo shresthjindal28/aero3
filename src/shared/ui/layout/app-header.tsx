@@ -21,6 +21,7 @@ type AppHeaderProps = {
     actorType: "doctor" | "admin";
   };
   onLogout: () => void;
+  onSearchClick?: () => void;
   showBreadcrumbs?: boolean;
   className?: string;
 };
@@ -29,6 +30,7 @@ export function AppHeader({
   breadcrumbs = [],
   user,
   onLogout,
+  onSearchClick,
   showBreadcrumbs = true,
   className,
 }: AppHeaderProps) {
@@ -73,7 +75,11 @@ export function AppHeader({
         <div className="flex-1" />
       )}
 
-      <SearchBox className="hidden lg:flex" placeholder="Search workspace..." />
+      <SearchBox
+        className="hidden lg:flex"
+        placeholder="Search workspace… ⌘K"
+        onClick={onSearchClick}
+      />
 
       <div className="ml-auto flex items-center gap-1">
         <NotificationBell />

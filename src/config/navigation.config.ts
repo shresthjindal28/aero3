@@ -33,6 +33,7 @@ export const doctorNavigation: NavItem[] = [
 export const adminNavigation: NavItem[] = [
   { label: "Dashboard", href: routes.admin.dashboard, icon: LayoutDashboard },
   { label: "Doctors", href: routes.admin.doctors, icon: BriefcaseMedical },
+  { label: "Verification", href: routes.admin.verification, icon: Users },
   { label: "AI Jobs", href: routes.admin.aiJobs, icon: FileText },
   { label: "Settings", href: routes.admin.settings, icon: Settings },
 ];

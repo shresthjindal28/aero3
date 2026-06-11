@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Plus } from "lucide-react";
+import { Brain, FolderOpen, Plus } from "lucide-react";
 
 import { ConsultationTable } from "@/features/consultations/components/consultation-table";
 import { ConsultationTimeline } from "@/features/consultations/components/consultation-timeline";
@@ -55,12 +55,26 @@ export function PatientWorkspace({ patient }: PatientWorkspaceProps) {
       <PatientHeader
         patient={patient}
         extraActions={
-          <Button asChild>
-            <Link href={routes.app.patientConsultationNew(patient.id)}>
-              <Plus className="h-4 w-4" />
-              Start new consultation
-            </Link>
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" asChild>
+              <Link href={routes.app.patientMemory(patient.id)}>
+                <Brain className="h-4 w-4" />
+                Memory
+              </Link>
+            </Button>
+            <Button variant="outline" asChild>
+              <Link href={routes.app.patientDocuments(patient.id)}>
+                <FolderOpen className="h-4 w-4" />
+                Documents
+              </Link>
+            </Button>
+            <Button asChild>
+              <Link href={routes.app.patientConsultationNew(patient.id)}>
+                <Plus className="h-4 w-4" />
+                Start new consultation
+              </Link>
+            </Button>
+          </div>
         }
       />
 

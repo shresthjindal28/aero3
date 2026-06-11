@@ -1,5 +1,5 @@
-import { ComingSoonPage } from "@/shared/ui/layout/coming-soon-page";
+import { AiJobsPage } from "@/features/admin/pages/ai-jobs-page";
 
-export default function AdminAiJobsPage() {
-  return <ComingSoonPage title="AI Jobs" />;
+export default function AdminAiJobsRoute() {
+  return <AiJobsPage />;
 }

@@ -35,5 +35,8 @@ export function isAuthRoute(pathname: string): boolean {
 }
 
 export function isProtectedRoute(pathname: string): boolean {
+  if (isAuthRoute(pathname)) {
+    return false;
+  }
   return getActorTypeForPath(pathname) !== null;
 }

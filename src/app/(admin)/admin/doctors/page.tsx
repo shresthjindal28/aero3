@@ -1,5 +1,5 @@
-import { ComingSoonPage } from "@/shared/ui/layout/coming-soon-page";
+import { DoctorsPage } from "@/features/admin/pages/doctors-page";
 
-export default function AdminDoctorsPage() {
-  return <ComingSoonPage title="Doctors" />;
+export default function AdminDoctorsRoute() {
+  return <DoctorsPage />;
 }

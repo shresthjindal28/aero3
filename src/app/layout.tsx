@@ -9,6 +9,12 @@ import "@/styles/tokens/colors.css";
 export const metadata: Metadata = {
   title: "AIRO",
   description: "Clinical intelligence platform",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "AIRO",
+  },
 };
 
 export default function RootLayout({

@@ -10,6 +10,8 @@ import { ShellSkeletonLoader } from "@/shared/ui/feedback/skeleton-loader";
 import { AppHeader } from "@/shared/ui/layout/app-header";
 import { MobileSidebarDrawer } from "@/shared/ui/layout/mobile-sidebar-drawer";
 import { Sidebar } from "@/shared/ui/layout/sidebar";
+import { CommandPalette } from "@/shared/search/command-palette";
+import { useCommandPalette } from "@/shared/search/use-command-palette";
 
 type DoctorAppShellProps = {
   children: React.ReactNode;
@@ -20,6 +22,7 @@ export function DoctorAppShell({ children }: DoctorAppShellProps) {
   const logout = useDoctorLogout();
   const { sidebarCollapsed } = useShellStore();
   const { data: doctor, isLoading, isError, error, refetch } = useDoctorMe(true);
+  const commandPalette = useCommandPalette();
 
   if (isLoading) {
     return <ShellSkeletonLoader />;
@@ -63,9 +66,13 @@ export function DoctorAppShell({ children }: DoctorAppShellProps) {
             actorType: "doctor",
           }}
           onLogout={logout}
+          onSearchClick={commandPalette.openPalette}
         />
-        <main className="flex-1">{children}</main>
+        <main className="flex-1" id="main-content" tabIndex={-1}>
+          {children}
+        </main>
       </div>
+      <CommandPalette open={commandPalette.open} onClose={commandPalette.closePalette} />
     </div>
   );
 }

@@ -1,10 +1,14 @@
-import { ComingSoonPage } from "@/shared/ui/layout/coming-soon-page";
+import { SecuritySettings } from "@/features/settings/components/security-settings";
+import { PageContainer } from "@/shared/ui/layout/page-container";
+import { PageHeader } from "@/shared/ui/layout/page-header";
 
-export default function DoctorSecuritySettingsPage() {
+export default function SecuritySettingsRoute() {
   return (
-    <ComingSoonPage
-      title="Security"
-      description="Manage password, sessions, and account security."
-    />
+    <PageContainer>
+      <PageHeader title="Security" description="Password, sessions, and login history" />
+      <div className="mt-6">
+        <SecuritySettings />
+      </div>
+    </PageContainer>
   );
 }

@@ -12,6 +12,8 @@ export const routes = {
     patientsNew: "/patients/new",
     patientDetail: (patientId: string) => `/patients/${patientId}`,
     patientEdit: (patientId: string) => `/patients/${patientId}/edit`,
+    patientMemory: (patientId: string) => `/patients/${patientId}/memory`,
+    patientDocuments: (patientId: string) => `/patients/${patientId}/documents`,
     patientConsultationNew: (patientId: string) =>
       `/patients/${patientId}/consultations/new`,
     consultations: "/consultations",
@@ -30,6 +32,8 @@ export const routes = {
   admin: {
     dashboard: "/admin/dashboard",
     doctors: "/admin/doctors",
+    doctorDetail: (doctorId: string) => `/admin/doctors/${doctorId}`,
+    verification: "/admin/verification",
     aiJobs: "/admin/ai-jobs",
     settings: "/admin/settings",
     settingsProfile: "/admin/settings/profile",

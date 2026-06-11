@@ -1,13 +1,8 @@
 import { z } from "zod";
 
 const clientEnvSchema = z.object({
-  NEXT_PUBLIC_API_BASE_URL: z
-    .string()
-    .url()
-    .default("http://localhost:8000/api/v1"),
-  NEXT_PUBLIC_WS_BASE_URL: z
-    .string()
-    .default("ws://localhost:8000/api/v1/ws"),
+  NEXT_PUBLIC_API_BASE_URL: z.string().url(),
+  NEXT_PUBLIC_WS_BASE_URL: z.string().min(1),
   NEXT_PUBLIC_APP_NAME: z.string().default("AIRO"),
 });
 

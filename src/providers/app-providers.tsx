@@ -7,10 +7,19 @@ import { QueryProvider } from "@/providers/query-provider";
 import { RealtimeProvider } from "@/providers/realtime-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { ToastProvider } from "@/providers/toast-provider";
+import { registerServiceWorker } from "@/shared/pwa/register-service-worker";
+import { useEffect } from "react";
 
 type AppProvidersProps = {
   children: ReactNode;
 };
+
+function PwaInitializer() {
+  useEffect(() => {
+    registerServiceWorker();
+  }, []);
+  return null;
+}
 
 export function AppProviders({ children }: AppProvidersProps) {
   return (
@@ -18,7 +27,10 @@ export function AppProviders({ children }: AppProvidersProps) {
       <QueryProvider>
         <AuthProvider>
           <RealtimeProvider>
-            <ToastProvider>{children}</ToastProvider>
+            <ToastProvider>
+              <PwaInitializer />
+              {children}
+            </ToastProvider>
           </RealtimeProvider>
         </AuthProvider>
       </QueryProvider>

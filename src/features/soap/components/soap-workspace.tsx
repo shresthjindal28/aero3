@@ -2,7 +2,8 @@
 
 import { FileText, Plus } from "lucide-react";
 
-import { AssistantPanel } from "@/features/soap/components/assistant-panel";
+import { AiCopilotPanel } from "@/shared/copilot/ai-copilot-panel";
+import { ExportService } from "@/shared/export/export.service";
 import { ConsultationInfoPanel } from "@/features/soap/components/consultation-info-panel";
 import { SoapActions } from "@/features/soap/components/soap-actions";
 import { SoapEditor } from "@/features/soap/components/soap-editor";
@@ -63,8 +64,23 @@ export function SoapWorkspace({ consultationId }: SoapWorkspaceProps) {
   }
 
   const patientName = workspace.patient.full_name;
+  const consultationLabel =
+    workspace.consultation.chief_complaint ?? "Consultation";
   const showMissingSoap =
     workspace.soapMissing && !workspace.isCreating && !workspace.soap;
+
+  const handleExportPdf = () => {
+    void ExportService.exportSoapPdf({
+      patientName,
+      consultationLabel,
+      sections: {
+        subjective: workspace.draft.subjective,
+        objective: workspace.draft.objective,
+        assessment: workspace.draft.assessment,
+        plan: workspace.draft.plan,
+      },
+    });
+  };
 
   return (
     <div className="flex min-h-[calc(100vh-4rem)] flex-col bg-background">
@@ -137,6 +153,7 @@ export function SoapWorkspace({ consultationId }: SoapWorkspaceProps) {
                   isApproved={workspace.isApproved}
                   onSave={() => void workspace.saveDraft()}
                   onApprove={() => void workspace.approveSoap()}
+                  onExportPdf={handleExportPdf}
                 />
               </div>
             )}
@@ -160,7 +177,7 @@ export function SoapWorkspace({ consultationId }: SoapWorkspaceProps) {
           </div>
         </div>
 
-        <AssistantPanel />
+        <AiCopilotPanel />
       </div>
     </div>
   );

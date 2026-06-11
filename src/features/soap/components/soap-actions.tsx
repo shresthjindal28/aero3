@@ -10,6 +10,7 @@ type SoapActionsProps = {
   isApproved: boolean;
   onSave: () => void;
   onApprove: () => void;
+  onExportPdf?: () => void;
 };
 
 export function SoapActions({
@@ -20,6 +21,7 @@ export function SoapActions({
   isApproved,
   onSave,
   onApprove,
+  onExportPdf,
 }: SoapActionsProps) {
   return (
     <div className="sticky bottom-0 z-10 border-t border-border/60 bg-background/90 px-4 py-3 backdrop-blur">
@@ -44,8 +46,8 @@ export function SoapActions({
           <Button
             type="button"
             variant="outline"
-            disabled
-            title="Coming soon"
+            onClick={onExportPdf}
+            disabled={!onExportPdf}
           >
             <FileDown className="h-4 w-4" />
             Export PDF

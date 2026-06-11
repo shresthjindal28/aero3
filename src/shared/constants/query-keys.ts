@@ -36,11 +36,23 @@ export const queryKeys = {
   },
   memory: {
     profile: (patientId: string) => ["memory", "profile", patientId] as const,
-    search: (query: string) => ["memory", "search", query] as const,
+    documents: (patientId: string) => ["memory", "documents", patientId] as const,
+    context: (patientId: string, consultationId?: string) =>
+      ["memory", "context", patientId, consultationId ?? ""] as const,
+    search: (patientId: string, query: string) =>
+      ["memory", "search", patientId, query] as const,
   },
   documents: {
+    byPatient: (patientId: string) => ["documents", "patient", patientId] as const,
     byConsultation: (consultationId: string) =>
       ["documents", "consultation", consultationId] as const,
+  },
+  notifications: {
+    all: ["notifications"] as const,
+  },
+  dashboard: {
+    doctor: ["dashboard", "doctor"] as const,
+    admin: ["dashboard", "admin"] as const,
   },
   aiJobs: {
     byConsultation: (consultationId: string) =>
