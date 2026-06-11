@@ -39,24 +39,24 @@ export function useDoctorVerificationActions() {
   };
 
   const approveMutation = useMutation({
-    mutationFn: approveDoctor,
+    mutationFn: (doctorId: string) => approveDoctor(doctorId),
     onSuccess: async () => {
       await invalidate();
       toast.success("Doctor approved");
     },
     onError: (error: ApiError) => {
-      toast.error(error.message ?? "Approval failed — backend may still be stubbed");
+      toast.error(error.message ?? "Approval failed");
     },
   });
 
   const rejectMutation = useMutation({
-    mutationFn: rejectDoctor,
+    mutationFn: (doctorId: string) => rejectDoctor(doctorId),
     onSuccess: async () => {
       await invalidate();
       toast.success("Doctor rejected");
     },
     onError: (error: ApiError) => {
-      toast.error(error.message ?? "Rejection failed — backend may still be stubbed");
+      toast.error(error.message ?? "Rejection failed");
     },
   });
 

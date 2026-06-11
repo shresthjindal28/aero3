@@ -13,12 +13,24 @@ const doctorPrefixes = [
 
 const adminPrefixes = ["/admin"];
 
+const doctorVerificationPrefixes = [
+  "/doctor/onboarding",
+  "/doctor/pending-approval",
+];
+
+export function isDoctorVerificationRoute(pathname: string): boolean {
+  return doctorVerificationPrefixes.some((prefix) => pathname.startsWith(prefix));
+}
+
 export function getActorTypeForPath(pathname: string): ActorType | null {
   if (adminPrefixes.some((prefix) => pathname.startsWith(prefix))) {
     return "admin";
   }
 
-  if (doctorPrefixes.some((prefix) => pathname.startsWith(prefix))) {
+  if (
+    doctorPrefixes.some((prefix) => pathname.startsWith(prefix)) ||
+    isDoctorVerificationRoute(pathname)
+  ) {
     return "doctor";
   }
 
@@ -38,5 +50,14 @@ export function isProtectedRoute(pathname: string): boolean {
   if (isAuthRoute(pathname)) {
     return false;
   }
+  if (isDoctorVerificationRoute(pathname)) {
+    return true;
+  }
   return getActorTypeForPath(pathname) !== null;
+}
+
+export function requiresApprovedDoctor(pathname: string): boolean {
+  return (
+    getActorTypeForPath(pathname) === "doctor" && !isDoctorVerificationRoute(pathname)
+  );
 }

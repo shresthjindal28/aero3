@@ -3,10 +3,8 @@
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-import {
-  getDoctorPostLoginRoute,
-  useDoctorLogin,
-} from "@/features/auth/hooks/use-doctor-auth";
+import { useDoctorLogin } from "@/features/auth/hooks/use-doctor-auth";
+import { resolveDoctorPostAuthRoute } from "@/features/auth/utils/doctor-route-resolver";
 import {
   loginSchema,
   type LoginFormValues,
@@ -28,7 +26,8 @@ export function DoctorLoginForm() {
     try {
       await loginMutation.mutateAsync(values);
       toast.success("Welcome back");
-      router.replace(getDoctorPostLoginRoute());
+      const route = await resolveDoctorPostAuthRoute();
+      router.replace(route);
     } catch (error) {
       const apiError = error as ApiError;
       toast.error(apiError.message ?? "Unable to sign in");

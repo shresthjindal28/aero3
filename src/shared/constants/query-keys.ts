@@ -1,6 +1,8 @@
 export const queryKeys = {
   doctor: {
     me: ["doctor", "me"] as const,
+    onboarding: ["doctor", "onboarding"] as const,
+    documents: ["doctor", "documents"] as const,
   },
   admin: {
     me: ["admin", "me"] as const,

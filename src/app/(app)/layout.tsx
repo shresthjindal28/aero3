@@ -1,3 +1,4 @@
+import { RequireApprovedDoctor } from "@/shared/auth/guards/require-approved-doctor";
 import { RequireRole } from "@/shared/auth/guards/require-role";
 import { DoctorAppShell } from "@/shared/ui/layout/doctor-app-shell";
 
@@ -8,9 +9,11 @@ export default function DoctorAppLayout({
 }>) {
   return (
     <RequireRole role="doctor">
-      <div className="theme-doctor">
-        <DoctorAppShell>{children}</DoctorAppShell>
-      </div>
+      <RequireApprovedDoctor>
+        <div className="theme-doctor">
+          <DoctorAppShell>{children}</DoctorAppShell>
+        </div>
+      </RequireApprovedDoctor>
     </RequireRole>
   );
 }

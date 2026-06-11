@@ -7,9 +7,6 @@ export type LoginCredentials = {
 
 export type SignupDoctorInput = LoginCredentials & {
   full_name: string;
-  phone?: string;
-  specialization?: string;
-  qualification?: string;
 };
 
 export type SignupAdminInput = LoginCredentials & {

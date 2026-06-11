@@ -1,7 +1,10 @@
 import { apiClient } from "@/lib/api/client";
 
 export type DocumentUploadUrlRequest = {
-  resource_type: "consultation_document" | "doctor_document";
+  resource_type:
+    | "consultation_document"
+    | "doctor_document"
+    | "doctor_profile_picture";
   consultation_id?: string;
   file_name: string;
 };

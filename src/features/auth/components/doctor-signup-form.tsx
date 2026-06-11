@@ -3,13 +3,16 @@
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
+import { doctorLogin } from "@/features/auth/api/doctor-auth.api";
 import { useDoctorSignup } from "@/features/auth/hooks/use-doctor-auth";
+import { useAuthStore } from "@/features/auth/store/auth.store";
+import { useTokenStore } from "@/features/auth/store/token.store";
+import { resolveDoctorPostAuthRoute } from "@/features/auth/utils/doctor-route-resolver";
 import {
   doctorSignupSchema,
   type DoctorSignupFormValues,
 } from "@/features/auth/schemas/signup.schema";
 import type { ApiError } from "@/lib/api/types/api-error.types";
-import { routes } from "@/shared/constants/routes";
 import { FormField } from "@/shared/forms/form-field";
 import { FormSection } from "@/shared/forms/form-section";
 import { useZodForm } from "@/shared/forms/use-zod-form";
@@ -24,22 +27,28 @@ export function DoctorSignupForm() {
       full_name: "",
       email: "",
       password: "",
-      phone: "",
-      specialization: "",
-      qualification: "",
     },
   });
 
   const onSubmit = form.handleSubmit(async (values) => {
     try {
-      await signupMutation.mutateAsync({
-        ...values,
-        phone: values.phone || undefined,
-        specialization: values.specialization || undefined,
-        qualification: values.qualification || undefined,
+      await signupMutation.mutateAsync(values);
+
+      const tokens = await doctorLogin({
+        email: values.email,
+        password: values.password,
       });
-      toast.success("Account created. Please sign in.");
-      router.replace(routes.auth.doctorLogin);
+
+      useTokenStore.getState().setTokens({
+        accessToken: tokens.access_token,
+        refreshToken: tokens.refresh_token,
+        actorType: "doctor",
+      });
+      useAuthStore.getState().setSession("doctor");
+
+      toast.success("Account created. Complete your onboarding profile.");
+      const route = await resolveDoctorPostAuthRoute();
+      router.replace(route);
     } catch (error) {
       const apiError = error as ApiError;
       if (apiError.fieldErrors) {
@@ -53,7 +62,10 @@ export function DoctorSignupForm() {
 
   return (
     <form onSubmit={onSubmit} className="space-y-6">
-      <FormSection title="Account" description="Create your doctor account.">
+      <FormSection
+        title="Account"
+        description="Create your account. All professional details are collected during onboarding."
+      >
         <div className="space-y-4">
           <FormField
             control={form.control}
@@ -75,29 +87,6 @@ export function DoctorSignupForm() {
             render={({ field }) => (
               <Input type="password" autoComplete="new-password" {...field} />
             )}
-          />
-        </div>
-      </FormSection>
-
-      <FormSection title="Professional details" description="Optional for now.">
-        <div className="space-y-4">
-          <FormField
-            control={form.control}
-            name="phone"
-            label="Phone"
-            render={({ field }) => <Input type="tel" autoComplete="tel" {...field} />}
-          />
-          <FormField
-            control={form.control}
-            name="specialization"
-            label="Specialization"
-            render={({ field }) => <Input {...field} />}
-          />
-          <FormField
-            control={form.control}
-            name="qualification"
-            label="Qualification"
-            render={({ field }) => <Input {...field} />}
           />
         </div>
       </FormSection>
