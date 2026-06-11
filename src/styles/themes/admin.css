@@ -1,0 +1,4 @@
+.theme-admin {
+  --primary: oklch(0.5 0.14 300);
+  --ring: oklch(0.5 0.14 300);
+}

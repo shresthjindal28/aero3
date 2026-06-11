@@ -1,0 +1,38 @@
+import {
+  Brain,
+  BriefcaseMedical,
+  FileText,
+  FolderOpen,
+  LayoutDashboard,
+  Mic,
+  Settings,
+  Stethoscope,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
+
+import { routes } from "@/shared/constants/routes";
+
+export type NavItem = {
+  label: string;
+  href: string;
+  icon: LucideIcon;
+  disabled?: boolean;
+};
+
+export const doctorNavigation: NavItem[] = [
+  { label: "Dashboard", href: routes.app.dashboard, icon: LayoutDashboard },
+  { label: "Patients", href: routes.app.patients, icon: Users },
+  { label: "Consultations", href: routes.app.consultations, icon: Stethoscope },
+  { label: "Live Sessions", href: routes.app.sessions, icon: Mic },
+  { label: "Memory", href: routes.app.memory, icon: Brain },
+  { label: "Documents", href: routes.app.documents, icon: FolderOpen },
+  { label: "Settings", href: routes.app.settings, icon: Settings },
+];
+
+export const adminNavigation: NavItem[] = [
+  { label: "Dashboard", href: routes.admin.dashboard, icon: LayoutDashboard },
+  { label: "Doctors", href: routes.admin.doctors, icon: BriefcaseMedical },
+  { label: "AI Jobs", href: routes.admin.aiJobs, icon: FileText },
+  { label: "Settings", href: routes.admin.settings, icon: Settings },
+];

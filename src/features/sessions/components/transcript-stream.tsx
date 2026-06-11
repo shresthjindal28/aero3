@@ -1,0 +1,82 @@
+"use client";
+
+import { useEffect, useRef } from "react";
+
+import { TranscriptSegment } from "@/features/sessions/components/transcript-segment";
+import type { TranscriptSegment as TranscriptSegmentType } from "@/features/sessions/types/transcript.types";
+
+type TranscriptStreamProps = {
+  segments: TranscriptSegmentType[];
+  autoScrollEnabled: boolean;
+  onAutoScrollChange: (enabled: boolean) => void;
+};
+
+export function TranscriptStream({
+  segments,
+  autoScrollEnabled,
+  onAutoScrollChange,
+}: TranscriptStreamProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const userScrolledRef = useRef(false);
+
+  useEffect(() => {
+    if (!autoScrollEnabled || userScrolledRef.current) return;
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [autoScrollEnabled, segments]);
+
+  return (
+    <div className="flex h-full min-h-0 flex-col rounded-xl border border-border/60 bg-card/30">
+      <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
+        <h2 className="text-sm font-medium">Live transcript</h2>
+        {!autoScrollEnabled ? (
+          <button
+            type="button"
+            className="text-xs text-primary hover:underline"
+            onClick={() => {
+              userScrolledRef.current = false;
+              onAutoScrollChange(true);
+            }}
+          >
+            Resume auto-scroll
+          </button>
+        ) : null}
+      </div>
+
+      <div
+        ref={containerRef}
+        className="min-h-0 flex-1 overflow-y-auto px-2 py-3"
+        onScroll={(event) => {
+          const element = event.currentTarget;
+          const distanceFromBottom =
+            element.scrollHeight - element.scrollTop - element.clientHeight;
+
+          if (distanceFromBottom > 80) {
+            userScrolledRef.current = true;
+            onAutoScrollChange(false);
+          } else {
+            userScrolledRef.current = false;
+            onAutoScrollChange(true);
+          }
+        }}
+      >
+        {segments.length === 0 ? (
+          <div className="flex h-full items-center justify-center px-6 text-center text-sm text-muted-foreground">
+            Transcript will appear here as audio is processed…
+          </div>
+        ) : (
+          <div className="space-y-1">
+            {segments.map((segment, index) => (
+              <TranscriptSegment
+                key={segment.id}
+                segment={segment}
+                isLatest={index === segments.length - 1}
+              />
+            ))}
+            <div ref={bottomRef} />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
