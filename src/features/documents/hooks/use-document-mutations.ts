@@ -7,10 +7,7 @@ import {
   createConsultationDocument,
   deleteConsultationDocument,
 } from "@/features/documents/api/documents.api";
-import {
-  requestDocumentUploadUrl,
-  uploadToPresignedUrl,
-} from "@/features/documents/api/storage.api";
+import { uploadStorageFile } from "@/features/documents/api/storage.api";
 import type { ConsultationDocumentCreateInput } from "@/features/documents/types/document.types";
 import type { ApiError } from "@/lib/api/types/api-error.types";
 import { queryKeys } from "@/shared/constants/query-keys";
@@ -23,16 +20,14 @@ export function useUploadDocument(patientId: string) {
       consultationId: string;
       file: File;
     }) => {
-      const upload = await requestDocumentUploadUrl({
-        resource_type: "consultation_document",
-        consultation_id: input.consultationId,
-        file_name: input.file.name,
-      });
-
-      await uploadToPresignedUrl(
-        upload.upload_url,
+      const upload = await uploadStorageFile(
+        {
+          resource_type: "consultation_document",
+          consultation_id: input.consultationId,
+          file_name: input.file.name,
+        },
         input.file,
-        upload.content_type,
+        input.file.name,
       );
 
       return createConsultationDocument({

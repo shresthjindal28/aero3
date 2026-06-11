@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/api/client";
+import { uploadStorageFile } from "@/features/documents/api/storage.api";
 
 export type UploadUrlRequest = {
   resource_type: "audio_chunk";
@@ -23,6 +24,22 @@ export async function requestUploadUrl(
   return data;
 }
 
+export async function uploadSessionChunk(
+  input: UploadUrlRequest,
+  blob: Blob,
+): Promise<{ object_key: string; content_type: string }> {
+  return uploadStorageFile(
+    {
+      resource_type: "audio_chunk",
+      session_id: input.session_id,
+      file_name: input.file_name,
+    },
+    blob,
+    input.file_name,
+  );
+}
+
+/** @deprecated Use uploadSessionChunk — avoids R2 bucket CORS requirements. */
 export async function uploadToPresignedUrl(
   uploadUrl: string,
   blob: Blob,

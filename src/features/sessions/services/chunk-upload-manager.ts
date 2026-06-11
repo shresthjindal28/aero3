@@ -1,8 +1,5 @@
 import { getMissingChunks, registerAudioChunk } from "@/features/sessions/api/audio-chunks.api";
-import {
-  requestUploadUrl,
-  uploadToPresignedUrl,
-} from "@/features/sessions/api/storage.api";
+import { uploadSessionChunk } from "@/features/sessions/api/storage.api";
 import { sessionConfig } from "@/features/sessions/config/session.config";
 import type { ChunkRecord } from "@/features/sessions/types/audio-chunk.types";
 import { computeSha256Hex } from "@/features/sessions/utils/checksum";
@@ -128,16 +125,13 @@ export class ChunkUploadManager {
     try {
       const checksum = await computeSha256Hex(task.blob);
       const fileName = `chunk_${task.chunkNumber}.webm`;
-      const upload = await requestUploadUrl({
-        resource_type: "audio_chunk",
-        session_id: this.options.sessionId,
-        file_name: fileName,
-      });
-
-      await uploadToPresignedUrl(
-        upload.upload_url,
+      const upload = await uploadSessionChunk(
+        {
+          resource_type: "audio_chunk",
+          session_id: this.options.sessionId,
+          file_name: fileName,
+        },
         task.blob,
-        upload.content_type,
       );
 
       await registerAudioChunk({

@@ -5,10 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { useDoctorMe } from "@/features/auth/hooks/use-doctor-auth";
-import {
-  requestDocumentUploadUrl,
-  uploadToPresignedUrl,
-} from "@/features/documents/api/storage.api";
+import { uploadStorageFile } from "@/features/documents/api/storage.api";
 import {
   useDeleteDoctorDocument,
   useDoctorDocuments,
@@ -149,11 +146,14 @@ export function DoctorOnboardingForm() {
 
     try {
       setUploadingProfilePicture(true);
-      const upload = await requestDocumentUploadUrl({
-        resource_type: "doctor_profile_picture",
-        file_name: file.name,
-      });
-      await uploadToPresignedUrl(upload.upload_url, file, upload.content_type);
+      const upload = await uploadStorageFile(
+        {
+          resource_type: "doctor_profile_picture",
+          file_name: file.name,
+        },
+        file,
+        file.name,
+      );
       profileForm.setValue("profile_picture_url", upload.object_key, {
         shouldValidate: true,
       });

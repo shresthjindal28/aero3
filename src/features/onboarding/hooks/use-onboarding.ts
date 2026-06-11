@@ -17,10 +17,7 @@ import type {
   DoctorProfileUpdateInput,
   DoctorVerificationSubmitInput,
 } from "@/features/onboarding/types/onboarding.types";
-import {
-  requestDocumentUploadUrl,
-  uploadToPresignedUrl,
-} from "@/features/documents/api/storage.api";
+import { uploadStorageFile } from "@/features/documents/api/storage.api";
 import type { ApiError } from "@/lib/api/types/api-error.types";
 import { queryKeys } from "@/shared/constants/query-keys";
 
@@ -74,11 +71,14 @@ export function useUploadDoctorDocument() {
       file: File;
       documentType: DoctorDocumentCreateInput["document_type"];
     }) => {
-      const upload = await requestDocumentUploadUrl({
-        resource_type: "doctor_document",
-        file_name: input.file.name,
-      });
-      await uploadToPresignedUrl(upload.upload_url, input.file, upload.content_type);
+      const upload = await uploadStorageFile(
+        {
+          resource_type: "doctor_document",
+          file_name: input.file.name,
+        },
+        input.file,
+        input.file.name,
+      );
       return createDoctorDocument({
         document_type: input.documentType,
         file_name: input.file.name,
