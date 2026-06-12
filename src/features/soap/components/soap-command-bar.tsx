@@ -116,10 +116,10 @@ export function SoapCommandBar({
                 size="sm"
                 variant="outline"
                 onClick={handleGeneratePrescription}
-                disabled={!hasSoap}
+                disabled={!hasSoap || !isApproved}
               >
                 <Pill className="h-4 w-4" />
-                Generate Prescription
+                {isApproved ? "Generate Prescription" : "Approve SOAP first"}
               </Button>
               <Button type="button" size="sm" variant="outline" onClick={onExportPdf}>
                 <FileDown className="h-4 w-4" />

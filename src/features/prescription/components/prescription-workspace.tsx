@@ -115,7 +115,7 @@ export function PrescriptionWorkspace({ consultationId }: PrescriptionWorkspaceP
 
   const handlePrint = async () => {
     if (!workspace.prescription || !doctor) return;
-    await workspace.logExport();
+    await workspace.logPrint();
     void ExportService.exportPrescriptionPdf({
       htmlContent: workspace.htmlDraft,
       patientName: patient.full_name,
@@ -149,6 +149,7 @@ export function PrescriptionWorkspace({ consultationId }: PrescriptionWorkspaceP
         isDirty={workspace.isDirty}
         isSaving={workspace.isSaving}
         isApproved={workspace.isApproved}
+        isRevising={workspace.isRevising}
         isGenerating={workspace.isGenerating}
         isApproving={workspace.isApproving}
         hasPrescription={Boolean(workspace.prescription)}
@@ -158,6 +159,7 @@ export function PrescriptionWorkspace({ consultationId }: PrescriptionWorkspaceP
         onGenerate={() => void workspace.generate()}
         onRegenerate={() => void workspace.generate(true)}
         onSave={() => void workspace.saveDraft()}
+        onStartRevision={workspace.startRevision}
         onApprove={() => void workspace.approve()}
         onPrint={() => void handlePrint()}
         onExportPdf={() => void handleExportPdf()}
@@ -177,6 +179,8 @@ export function PrescriptionWorkspace({ consultationId }: PrescriptionWorkspaceP
         <main className="relative flex min-h-0 min-w-0 flex-1 flex-col">
           {workspace.soapMissing ? (
             <EmptySoapRequired consultationId={consultationId} />
+          ) : workspace.soapNotApproved ? (
+            <EmptySoapApprovalRequired consultationId={consultationId} />
           ) : showMissingPrescription ? (
             <EmptyPrescriptionState
               isGenerating={workspace.isGenerating}
@@ -195,7 +199,7 @@ export function PrescriptionWorkspace({ consultationId }: PrescriptionWorkspaceP
             <PrescriptionHtmlEditor
               value={workspace.htmlDraft}
               version={workspace.documentVersion}
-              readOnly={workspace.isApproved}
+              readOnly={workspace.isReadOnly}
               onChange={workspace.setHtmlDraft}
             />
           )}
@@ -225,6 +229,29 @@ function LoadingState({ message }: { message: string }) {
           This usually takes 10–30 seconds
         </p>
       </div>
+    </div>
+  );
+}
+
+function EmptySoapApprovalRequired({ consultationId }: { consultationId: string }) {
+  return (
+    <div className="flex h-full flex-col items-center justify-center gap-5 bg-muted/20 p-8 text-center">
+      <div className="rounded-2xl border border-dashed border-border/60 bg-background p-5 shadow-sm">
+        <FileText className="h-10 w-10 text-muted-foreground" />
+      </div>
+      <div className="max-w-md space-y-2">
+        <h2 className="text-xl font-semibold">SOAP approval required</h2>
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          Prescriptions are generated only after the SOAP note is reviewed and
+          approved. This ensures clinical documentation is finalized before
+          prescribing.
+        </p>
+      </div>
+      <Button type="button" asChild>
+        <Link href={routes.app.consultationSoap(consultationId)}>
+          Review SOAP note
+        </Link>
+      </Button>
     </div>
   );
 }

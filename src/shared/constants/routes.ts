@@ -16,6 +16,10 @@ export const routes = {
     patientEdit: (patientId: string) => `/patients/${patientId}/edit`,
     patientMemory: (patientId: string) => `/patients/${patientId}/memory`,
     patientDocuments: (patientId: string) => `/patients/${patientId}/documents`,
+    patientPrescriptions: (patientId: string) =>
+      `/patients/${patientId}/prescriptions`,
+    prescriptionDetail: (prescriptionId: string) =>
+      `/prescriptions/${prescriptionId}`,
     patientConsultationNew: (patientId: string) =>
       `/patients/${patientId}/consultations/new`,
     consultations: "/consultations",

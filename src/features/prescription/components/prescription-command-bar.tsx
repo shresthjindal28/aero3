@@ -21,6 +21,7 @@ type PrescriptionCommandBarProps = {
   isDirty: boolean;
   isSaving: boolean;
   isApproved: boolean;
+  isRevising: boolean;
   isGenerating: boolean;
   isApproving: boolean;
   hasPrescription: boolean;
@@ -30,6 +31,7 @@ type PrescriptionCommandBarProps = {
   onGenerate: () => void;
   onRegenerate: () => void;
   onSave: () => void;
+  onStartRevision: () => void;
   onApprove: () => void;
   onPrint: () => void;
   onExportPdf: () => void;
@@ -42,6 +44,7 @@ export function PrescriptionCommandBar({
   isDirty,
   isSaving,
   isApproved,
+  isRevising,
   isGenerating,
   isApproving,
   hasPrescription,
@@ -51,6 +54,7 @@ export function PrescriptionCommandBar({
   onGenerate,
   onRegenerate,
   onSave,
+  onStartRevision,
   onApprove,
   onPrint,
   onExportPdf,
@@ -77,10 +81,14 @@ export function PrescriptionCommandBar({
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            {isApproved ? (
+            {isApproved && isRevising ? (
+              <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-600 dark:text-amber-400">
+                Revision in progress
+              </span>
+            ) : isApproved ? (
               <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
                 <CheckCircle2 className="h-3.5 w-3.5" />
-                Approved
+                Approved · permanent record
               </span>
             ) : isSaving ? (
               <span className="rounded-full border border-border/60 bg-muted/50 px-3 py-1 text-xs text-muted-foreground">
@@ -118,24 +126,37 @@ export function PrescriptionCommandBar({
                   variant="ghost"
                   className="h-8"
                   onClick={onRegenerate}
-                  disabled={isGenerating || isApproved || soapMissing}
+                  disabled={isGenerating || soapMissing}
                 >
                   <RefreshCw
                     className={cn("h-4 w-4", isGenerating && "animate-spin")}
                   />
                   Regenerate
                 </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="ghost"
-                  className="h-8"
-                  onClick={onSave}
-                  disabled={!isDirty || isSaving || isApproved}
-                >
-                  <Save className="h-4 w-4" />
-                  Save
-                </Button>
+                {isApproved && !isRevising ? (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="h-8"
+                    onClick={onStartRevision}
+                  >
+                    <Save className="h-4 w-4" />
+                    Revise
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="h-8"
+                    onClick={onSave}
+                    disabled={!isDirty || isSaving}
+                  >
+                    <Save className="h-4 w-4" />
+                    Save
+                  </Button>
+                )}
                 <Button
                   type="button"
                   size="sm"

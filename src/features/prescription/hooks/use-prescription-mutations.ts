@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import {
   approvePrescription,
   exportPrescription,
+  printPrescription,
   updatePrescription,
 } from "@/features/prescription/api/prescription.api";
 import { prescriptionQueryKeys } from "@/features/prescription/queries/prescription-queries";
@@ -28,6 +29,13 @@ export function useUpdatePrescription(consultationId: string) {
         prescriptionQueryKeys.byConsultation(consultationId),
         prescription,
       );
+      queryClient.setQueryData(
+        prescriptionQueryKeys.byId(prescription.id),
+        prescription,
+      );
+      void queryClient.invalidateQueries({
+        queryKey: prescriptionQueryKeys.versions(prescription.id),
+      });
     },
     onError: (error: ApiError) => {
       toast.error(error.message ?? "Failed to save prescription");
@@ -45,7 +53,14 @@ export function useApprovePrescription(consultationId: string) {
         prescriptionQueryKeys.byConsultation(consultationId),
         prescription,
       );
-      toast.success("Prescription approved");
+      queryClient.setQueryData(
+        prescriptionQueryKeys.byId(prescription.id),
+        prescription,
+      );
+      void queryClient.invalidateQueries({
+        queryKey: prescriptionQueryKeys.byPatient(prescription.patient_id),
+      });
+      toast.success("Prescription approved and added to patient memory");
     },
     onError: (error: ApiError) => {
       toast.error(error.message ?? "Failed to approve prescription");
@@ -64,5 +79,11 @@ export function useExportPrescriptionAudit(consultationId: string) {
         prescription,
       );
     },
+  });
+}
+
+export function usePrintPrescriptionAudit(consultationId: string) {
+  return useMutation({
+    mutationFn: (prescriptionId: string) => printPrescription(prescriptionId),
   });
 }

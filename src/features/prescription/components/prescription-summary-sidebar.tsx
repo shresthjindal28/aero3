@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+
+import { PrescriptionVersionPanel } from "@/features/prescription/components/prescription-version-panel";
 import { ChevronLeft, ChevronRight, FileText } from "lucide-react";
 
 import type { Consultation } from "@/features/consultations/types/consultation.types";
@@ -113,7 +115,7 @@ export function PrescriptionSummarySidebar({
             label="Prescription"
             status={
               prescription
-                ? prescription.approved_by_doctor
+                ? prescription.is_approved || prescription.approved_by_doctor
                   ? "approved"
                   : "draft"
                 : "missing"
@@ -126,6 +128,14 @@ export function PrescriptionSummarySidebar({
           />
         </div>
 
+        {prescription && prescription.version_number > 1 ? (
+          <PrescriptionVersionPanel
+            prescriptionId={prescription.id}
+            activeVersionId={prescription.id}
+            className="mt-6"
+          />
+        ) : null}
+
         <Link
           href={routes.app.consultationSoap(consultation.id)}
           className="mt-6 flex items-center gap-2 rounded-lg border border-border/50 bg-background/40 px-3 py-2.5 text-sm text-primary transition-colors hover:bg-background/80"
@@ -133,6 +143,15 @@ export function PrescriptionSummarySidebar({
           <FileText className="h-4 w-4 shrink-0" />
           Open SOAP workspace
         </Link>
+
+        {prescription ? (
+          <Link
+            href={routes.app.prescriptionDetail(prescription.id)}
+            className="mt-2 flex items-center gap-2 rounded-lg border border-border/50 bg-background/40 px-3 py-2.5 text-sm text-primary transition-colors hover:bg-background/80"
+          >
+            View clinical record
+          </Link>
+        ) : null}
       </div>
     </aside>
   );

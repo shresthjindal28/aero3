@@ -8,6 +8,7 @@ import { useGeneratePrescription } from "@/features/prescription/hooks/use-gener
 import {
   useApprovePrescription,
   useExportPrescriptionAudit,
+  usePrintPrescriptionAudit,
   useUpdatePrescription,
 } from "@/features/prescription/hooks/use-prescription-mutations";
 import { usePrescriptionNote } from "@/features/prescription/hooks/use-prescription-note";
@@ -32,12 +33,13 @@ export function usePrescriptionWorkspace(consultationId: string) {
   const updateMutation = useUpdatePrescription(consultationId);
   const approveMutation = useApprovePrescription(consultationId);
   const exportAuditMutation = useExportPrescriptionAudit(consultationId);
+  const printAuditMutation = usePrintPrescriptionAudit(consultationId);
   const generatePrescription = useGeneratePrescription(consultationId);
 
   const [htmlDraft, setHtmlDraft] = useState("");
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
-  const [documentVersion, setDocumentVersion] = useState(0);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [isRevising, setIsRevising] = useState(false);
 
   const savedHtmlRef = useRef("");
   const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -45,18 +47,27 @@ export function usePrescriptionWorkspace(consultationId: string) {
 
   const prescription = prescriptionQuery.data;
   const soap = soapQuery.data;
-  const isApproved = Boolean(prescription?.approved_by_doctor);
+  const isApproved = Boolean(
+    prescription?.is_approved ?? prescription?.approved_by_doctor,
+  );
+  const isReadOnly = isApproved && !isRevising;
   const isDirty = htmlDraft !== savedHtmlRef.current;
   const isSaving = updateMutation.isPending;
+  const documentVersion = prescription?.version_number ?? 0;
 
-  const hydrateDraft = useCallback((nextPrescription: NonNullable<typeof prescription>) => {
-    setHtmlDraft(nextPrescription.html_content);
-    savedHtmlRef.current = nextPrescription.html_content;
-    hydratedPrescriptionIdRef.current = nextPrescription.id;
-    setLastSavedAt(nextPrescription.updated_at);
-    setDocumentVersion((current) => current + 1);
-    setSaveError(null);
-  }, []);
+  const hydrateDraft = useCallback(
+    (nextPrescription: NonNullable<typeof prescription>) => {
+      setHtmlDraft(nextPrescription.html_content);
+      savedHtmlRef.current = nextPrescription.html_content;
+      hydratedPrescriptionIdRef.current = nextPrescription.id;
+      setLastSavedAt(nextPrescription.updated_at);
+      setSaveError(null);
+      if (nextPrescription.is_approved) {
+        setIsRevising(false);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     if (prescription && hydratedPrescriptionIdRef.current !== prescription.id) {
@@ -66,7 +77,7 @@ export function usePrescriptionWorkspace(consultationId: string) {
 
   const saveDraft = useCallback(
     async (options?: { silent?: boolean }) => {
-      if (!prescription || !isDirty || isApproved) return;
+      if (!prescription || !isDirty || isReadOnly) return;
       setSaveError(null);
 
       try {
@@ -75,8 +86,8 @@ export function usePrescriptionWorkspace(consultationId: string) {
           input: { html_content: htmlDraft },
         });
         hydrateDraft(updated);
-        if (!options?.silent) {
-          // autosave stays silent
+        if (!options?.silent && updated.version_number > prescription.version_number) {
+          setIsRevising(false);
         }
       } catch (error) {
         const message =
@@ -85,11 +96,11 @@ export function usePrescriptionWorkspace(consultationId: string) {
         throw error;
       }
     },
-    [htmlDraft, hydrateDraft, isApproved, isDirty, prescription, updateMutation],
+    [htmlDraft, hydrateDraft, isDirty, isReadOnly, prescription, updateMutation],
   );
 
   useEffect(() => {
-    if (!isDirty || isApproved || !prescription) return;
+    if (!isDirty || isReadOnly || !prescription) return;
 
     if (autosaveTimerRef.current) {
       clearTimeout(autosaveTimerRef.current);
@@ -104,7 +115,7 @@ export function usePrescriptionWorkspace(consultationId: string) {
         clearTimeout(autosaveTimerRef.current);
       }
     };
-  }, [htmlDraft, isApproved, isDirty, prescription, saveDraft]);
+  }, [htmlDraft, isDirty, isReadOnly, prescription, saveDraft]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -135,9 +146,15 @@ export function usePrescriptionWorkspace(consultationId: string) {
         input: { html_content: htmlDraft },
       });
       hydrateDraft(updated);
+      await approveMutation.mutateAsync(updated.id);
+      return;
     }
 
     await approveMutation.mutateAsync(prescription.id);
+  };
+
+  const startRevision = () => {
+    setIsRevising(true);
   };
 
   const logExport = async () => {
@@ -145,10 +162,21 @@ export function usePrescriptionWorkspace(consultationId: string) {
     await exportAuditMutation.mutateAsync(prescription.id);
   };
 
+  const logPrint = async () => {
+    if (!prescription) return;
+    await printAuditMutation.mutateAsync(prescription.id);
+  };
+
   const soapMissing =
     !soapQuery.isLoading &&
     !soapQuery.isFetching &&
     (soapQuery.error as unknown as ApiError | undefined)?.status === 404;
+
+  const soapNotApproved =
+    Boolean(soap) &&
+    !soap?.approved_by_doctor &&
+    !soapQuery.isLoading &&
+    !soapQuery.isFetching;
 
   const prescriptionMissing =
     !prescriptionQuery.isLoading &&
@@ -168,10 +196,14 @@ export function usePrescriptionWorkspace(consultationId: string) {
     isSoapLoading: soapQuery.isLoading,
     consultationError,
     soapMissing,
+    soapNotApproved,
     prescriptionMissing,
     isDirty,
     isSaving,
     isApproved,
+    isReadOnly,
+    isRevising,
+    startRevision,
     isApproving: approveMutation.isPending,
     isGenerating: generatePrescription.isGenerating,
     generationError: generatePrescription.error,
@@ -181,6 +213,7 @@ export function usePrescriptionWorkspace(consultationId: string) {
     approve,
     generate,
     logExport,
+    logPrint,
     refetchPrescription: prescriptionQuery.refetch,
   };
 }
