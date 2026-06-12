@@ -36,6 +36,10 @@ export const queryKeys = {
     byConsultation: (consultationId: string) =>
       ["soap", "consultation", consultationId] as const,
   },
+  prescription: {
+    byConsultation: (consultationId: string) =>
+      ["prescription", "consultation", consultationId] as const,
+  },
   memory: {
     profile: (patientId: string) => ["memory", "profile", patientId] as const,
     documents: (patientId: string) => ["memory", "documents", patientId] as const,

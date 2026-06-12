@@ -1,0 +1,27 @@
+"use client";
+
+import { AiCopilotPanel } from "@/shared/copilot/ai-copilot-panel";
+import {
+  Sheet,
+  SheetContent,
+  SheetOverlay,
+  SheetPortal,
+} from "@/shared/ui/primitives/sheet";
+
+type AiAssistantDrawerProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+};
+
+export function AiAssistantDrawer({ open, onOpenChange }: AiAssistantDrawerProps) {
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetPortal>
+        <SheetOverlay />
+        <SheetContent side="right" className="w-full max-w-md p-0">
+          <AiCopilotPanel variant="embedded" className="h-full rounded-none border-0" />
+        </SheetContent>
+      </SheetPortal>
+    </Sheet>
+  );
+}

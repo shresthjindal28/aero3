@@ -22,6 +22,16 @@ export const routes = {
     consultationDetail: (consultationId: string) => `/consultations/${consultationId}`,
     consultationSoap: (consultationId: string) =>
       `/consultations/${consultationId}/soap`,
+    consultationPrescription: (
+      consultationId: string,
+      options?: { generate?: boolean; regenerate?: boolean },
+    ) => {
+      const params = new URLSearchParams();
+      if (options?.generate) params.set("generate", "true");
+      if (options?.regenerate) params.set("regenerate", "true");
+      const query = params.toString();
+      return `/consultations/${consultationId}/prescription${query ? `?${query}` : ""}`;
+    },
     sessions: "/sessions",
     sessionDetail: (sessionId: string) => `/sessions/${sessionId}`,
     memory: "/memory",

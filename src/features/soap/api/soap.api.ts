@@ -1,4 +1,6 @@
+import type { AiJob } from "@/features/soap/types/ai-job.types";
 import type {
+  SoapGenerateInput,
   SoapNote,
   SoapNoteCreateInput,
   SoapNoteUpdateInput,
@@ -16,6 +18,11 @@ export async function getSoapNoteByConsultation(
 
 export async function getSoapNote(id: string): Promise<SoapNote> {
   const { data } = await apiClient.get<SoapNote>(`/soap-notes/${id}`);
+  return data;
+}
+
+export async function generateSoapNote(input: SoapGenerateInput): Promise<AiJob> {
+  const { data } = await apiClient.post<AiJob>("/soap-notes/generate", input);
   return data;
 }
 

@@ -45,21 +45,26 @@ export function AiCopilotPanel({
   return (
     <aside
       className={cn(
-        "flex flex-col border-border/60 bg-card/20",
+        "flex h-full min-h-0 flex-col border-border/60 bg-card/20",
         variant === "sidebar" && "hidden w-56 shrink-0 border-l xl:flex",
-        variant === "embedded" && "rounded-xl border",
+        variant === "embedded" && "border-0",
         className,
       )}
     >
-      <div className="border-b border-border/60 px-4 py-3">
+      <div className="border-b border-border/60 px-5 py-4">
         <div className="flex items-center gap-2">
           <Activity className="h-4 w-4 text-primary" />
-          <h2 className="text-sm font-medium">AI copilot</h2>
+          <div>
+            <h2 className="text-sm font-semibold">AI Assistant</h2>
+            <p className="text-xs text-muted-foreground">
+              Clinical insights and memory
+            </p>
+          </div>
         </div>
       </div>
 
       <Tabs defaultValue="memory" className="flex min-h-0 flex-1 flex-col">
-        <TabsList className="mx-2 mt-2 grid w-auto grid-cols-2 gap-1">
+        <TabsList className="mx-3 mt-3 grid w-auto grid-cols-2 gap-1">
           {tabs.slice(0, 4).map((tab) => (
             <TabsTrigger key={tab.id} value={tab.id} className="text-xs">
               <tab.icon className="h-3 w-3" />
@@ -68,7 +73,7 @@ export function AiCopilotPanel({
           ))}
         </TabsList>
 
-        <div className="min-h-0 flex-1 overflow-y-auto p-2">
+        <div className="min-h-0 flex-1 overflow-y-auto p-3">
           {tabs.map((tab) => (
             <TabsContent key={tab.id} value={tab.id} className="mt-0">
               <PlaceholderContent label={tab.label} />

@@ -11,6 +11,12 @@ export type SoapNote = {
   updated_at: string;
 };
 
+export type SoapGenerateInput = {
+  consultation_id: string;
+  session_id?: string | null;
+  regenerate?: boolean;
+};
+
 export type SoapNoteCreateInput = {
   consultation_id: string;
   subjective?: string | null;

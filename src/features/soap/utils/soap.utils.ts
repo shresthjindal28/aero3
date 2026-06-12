@@ -53,6 +53,17 @@ export function countTotalWords(draft: SoapDraft): number {
   );
 }
 
+export function countCharacters(text: string): number {
+  return text.length;
+}
+
+export function countTotalCharacters(draft: SoapDraft): number {
+  return SOAP_SECTIONS.reduce(
+    (total, section) => total + countCharacters(draft[section.key]),
+    0,
+  );
+}
+
 export function draftsEqual(a: SoapDraft, b: SoapDraft): boolean {
   return SOAP_SECTIONS.every((section) => a[section.key] === b[section.key]);
 }

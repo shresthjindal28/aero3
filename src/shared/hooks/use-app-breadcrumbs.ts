@@ -69,6 +69,26 @@ export function useAppBreadcrumbs(): BreadcrumbSegment[] {
     if (
       consultationId &&
       consultation &&
+      pathname.endsWith("/prescription")
+    ) {
+      const patientName = consultationPatient?.full_name ?? "Patient";
+      return [
+        { label: "Consultations", href: routes.app.consultations },
+        {
+          label: patientName,
+          href: routes.app.patientDetail(consultation.patient_id),
+        },
+        {
+          label: consultation.chief_complaint ?? "Consultation",
+          href: routes.app.consultationDetail(consultationId),
+        },
+        { label: "Prescription" },
+      ];
+    }
+
+    if (
+      consultationId &&
+      consultation &&
       pathname.endsWith("/soap")
     ) {
       const patientName = consultationPatient?.full_name ?? "Patient";

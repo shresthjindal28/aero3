@@ -68,7 +68,13 @@ export function ConsultationDetailPage() {
         patientName={patient?.full_name ?? "Patient"}
       />
 
-      <div className="flex justify-end">
+      <div className="flex flex-wrap justify-end gap-2">
+        <Button asChild variant="outline">
+          <Link href={routes.app.consultationPrescription(consultation.id)}>
+            <FileText className="h-4 w-4" />
+            Open prescription
+          </Link>
+        </Button>
         <Button asChild variant="default">
           <Link href={routes.app.consultationSoap(consultation.id)}>
             <FileText className="h-4 w-4" />

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useConsultation } from "@/features/consultations/hooks/use-consultation";
 import { usePatient } from "@/features/patients/hooks/use-patient";
+import { useGenerateSoap } from "@/features/soap/hooks/use-generate-soap";
 import {
   useApproveSoapNote,
   useCreateSoapNote,
@@ -45,16 +46,9 @@ export function useSoapWorkspace(consultationId: string) {
   const createMutation = useCreateSoapNote(consultationId);
   const updateMutation = useUpdateSoapNote(consultationId);
   const approveMutation = useApproveSoapNote(consultationId);
+  const generateSoap = useGenerateSoap(consultationId);
 
   const [draft, setDraft] = useState<SoapDraft>(EMPTY_DRAFT);
-  const [collapsedSections, setCollapsedSections] = useState<
-    Record<SoapSectionKey, boolean>
-  >({
-    subjective: false,
-    objective: false,
-    assessment: false,
-    plan: false,
-  });
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
 
@@ -157,16 +151,12 @@ export function useSoapWorkspace(consultationId: string) {
     setDraft((current) => ({ ...current, [key]: value }));
   };
 
-  const toggleSection = (key: SoapSectionKey) => {
-    setCollapsedSections((current) => ({
-      ...current,
-      [key]: !current[key],
-    }));
-  };
-
-  const createEmptySoap = async () => {
-    const created = await createMutation.mutateAsync({});
-    hydrateDraft(created);
+  const generateSoapNote = async (regenerate = false) => {
+    await generateSoap.generate({ regenerate });
+    const refreshed = await soapQuery.refetch();
+    if (refreshed.data) {
+      hydrateDraft(refreshed.data);
+    }
   };
 
   const approveSoap = async () => {
@@ -202,7 +192,6 @@ export function useSoapWorkspace(consultationId: string) {
     soap,
     transcript: transcriptQuery.data,
     draft,
-    collapsedSections,
     isLoading: consultationLoading || patientLoading,
     isSoapLoading: soapQuery.isLoading,
     isTranscriptLoading: transcriptQuery.isLoading,
@@ -216,13 +205,14 @@ export function useSoapWorkspace(consultationId: string) {
     isApproved,
     isApproving: approveMutation.isPending,
     isCreating: createMutation.isPending,
+    isGenerating: generateSoap.isGenerating,
+    generationError: generateSoap.error,
     lastSavedAt,
     saveError,
     updateSection,
-    toggleSection,
     saveDraft,
     approveSoap,
-    createEmptySoap,
+    generateSoapNote,
     refetchSoap: soapQuery.refetch,
     refetchTranscript: transcriptQuery.refetch,
   };

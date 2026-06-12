@@ -1,8 +1,11 @@
 "use client";
 
+import { Sparkles } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { AudioRecorderStatus } from "@/features/sessions/components/audio-recorder-status";
+import { useGenerateSoap } from "@/features/soap/hooks/use-generate-soap";
 import { MicAccessBanner } from "@/features/sessions/components/mic-access-banner";
 import { SessionControls } from "@/features/sessions/components/session-controls";
 import { SessionHeader } from "@/features/sessions/components/session-header";
@@ -13,13 +16,17 @@ import { ConsultationStatusBadge } from "@/features/consultations/components/con
 import { routes } from "@/shared/constants/routes";
 import { ApiErrorDisplay } from "@/shared/ui/feedback/api-error";
 import { ShellSkeletonLoader } from "@/shared/ui/feedback/skeleton-loader";
+import { Button } from "@/shared/ui/primitives/button";
 
 type SessionWorkspaceProps = {
   sessionId: string;
 };
 
 export function SessionWorkspace({ sessionId }: SessionWorkspaceProps) {
+  const router = useRouter();
   const workspace = useSessionWorkspace(sessionId);
+  const consultationId = workspace.consultation?.id ?? "";
+  const generateSoap = useGenerateSoap(consultationId);
 
   if (workspace.isLoading) {
     return <ShellSkeletonLoader />;
@@ -109,6 +116,45 @@ export function SessionWorkspace({ sessionId }: SessionWorkspaceProps) {
                 {workspace.sessionError}
               </p>
             ) : null}
+            {workspace.session.status === "ended" ? (
+              <div className="space-y-2 border-t border-border/60 pt-4">
+                <Button
+                  type="button"
+                  className="w-full"
+                  disabled={
+                    generateSoap.isGenerating ||
+                    workspace.transcriptSegmentCount === 0
+                  }
+                  onClick={() => {
+                    void generateSoap
+                      .generate({ session_id: sessionId })
+                      .then(() => {
+                        router.push(routes.app.consultationSoap(consultationId));
+                      });
+                  }}
+                >
+                  <Sparkles className="h-4 w-4" />
+                  {generateSoap.isGenerating
+                    ? "Generating SOAP note…"
+                    : "Generate SOAP note"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={() =>
+                    router.push(routes.app.consultationSoap(consultationId))
+                  }
+                >
+                  Open SOAP workspace
+                </Button>
+                {workspace.transcriptSegmentCount === 0 ? (
+                  <p className="text-xs text-muted-foreground">
+                    Transcript is still processing. Try again in a moment.
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
           </section>
 
           <AudioRecorderStatus
@@ -126,7 +172,7 @@ export function SessionWorkspace({ sessionId }: SessionWorkspaceProps) {
           />
         </aside>
 
-        <section className="min-h-[420px] lg:min-h-0">
+        <section className="min-h-[420px] lg:min-h-0 lg:h-full">
           <TranscriptStream
             segments={workspace.transcriptSegments}
             autoScrollEnabled={workspace.autoScrollEnabled}

@@ -43,7 +43,7 @@ export function TranscriptStream({
   }, [autoScrollEnabled, segments]);
 
   return (
-    <div className="flex h-full min-h-0 flex-col rounded-xl border border-border/60 bg-card/30">
+    <div className="flex h-[min(72vh,720px)] min-h-[420px] flex-col rounded-xl border border-border/60 bg-card/30 lg:h-full lg:max-h-[calc(100vh-12rem)]">
       <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
         <h2 className="text-sm font-medium">Live transcript</h2>
         {!autoScrollEnabled ? (
@@ -62,7 +62,7 @@ export function TranscriptStream({
 
       <div
         ref={containerRef}
-        className="min-h-0 flex-1 overflow-y-auto px-2 py-3"
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 py-3"
         onScroll={(event) => {
           const element = event.currentTarget;
           const distanceFromBottom =

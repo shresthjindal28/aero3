@@ -1,20 +1,16 @@
 "use client";
 
-import { ChevronDown, ChevronRight } from "lucide-react";
-
 import type { SoapSectionKey } from "@/features/soap/types/soap.types";
 import { countWords } from "@/features/soap/utils/soap.utils";
+import { useAutoResizeTextarea } from "@/shared/hooks/use-auto-resize-textarea";
 import { cn } from "@/lib/utils/cn";
-import { Textarea } from "@/shared/ui/primitives/textarea";
 
 type SoapSectionProps = {
   sectionKey: SoapSectionKey;
   label: string;
   description: string;
   value: string;
-  collapsed: boolean;
   readOnly?: boolean;
-  onToggle: () => void;
   onChange: (value: string) => void;
 };
 
@@ -23,53 +19,49 @@ export function SoapSection({
   label,
   description,
   value,
-  collapsed,
   readOnly = false,
-  onToggle,
   onChange,
 }: SoapSectionProps) {
   const wordCount = countWords(value);
+  const { ref, resize } = useAutoResizeTextarea(value, 160);
 
   return (
-    <section className="rounded-xl border border-border/60 bg-card/40">
-      <button
-        type="button"
-        onClick={onToggle}
-        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
-        aria-expanded={!collapsed}
-        aria-controls={`soap-section-${sectionKey}`}
-      >
-        <div className="flex items-center gap-2">
-          {collapsed ? (
-            <ChevronRight className="h-4 w-4 text-muted-foreground" />
-          ) : (
-            <ChevronDown className="h-4 w-4 text-muted-foreground" />
-          )}
-          <div>
-            <h3 className="text-sm font-semibold">{label}</h3>
-            <p className="text-xs text-muted-foreground">{description}</p>
-          </div>
+    <section className="group" aria-labelledby={`soap-heading-${sectionKey}`}>
+      <div className="mb-4 flex items-baseline justify-between gap-4">
+        <div>
+          <h3
+            id={`soap-heading-${sectionKey}`}
+            className="text-xl font-semibold tracking-tight text-foreground"
+          >
+            {label}
+          </h3>
+          <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>
         </div>
-        <span className="shrink-0 font-mono text-xs text-muted-foreground">
+        <span className="shrink-0 font-mono text-xs text-muted-foreground opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100">
           {wordCount} {wordCount === 1 ? "word" : "words"}
         </span>
-      </button>
-
-      <div
-        id={`soap-section-${sectionKey}`}
-        className={cn("px-4 pb-4", collapsed && "hidden")}
-      >
-        <Textarea
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          readOnly={readOnly}
-          placeholder={`Enter ${label.toLowerCase()} notes…`}
-          className={cn(
-            "min-h-[140px] resize-y border-border/60 bg-background/60 font-[inherit] leading-relaxed",
-            readOnly && "cursor-default opacity-80",
-          )}
-        />
       </div>
+
+      <div className="mb-2 h-px bg-border/80" />
+
+      <textarea
+        ref={ref}
+        id={`soap-section-${sectionKey}`}
+        value={value}
+        onChange={(event) => {
+          onChange(event.target.value);
+          resize();
+        }}
+        readOnly={readOnly}
+        placeholder={`Enter ${label.toLowerCase()} notes…`}
+        rows={6}
+        className={cn(
+          "w-full resize-none border-0 bg-transparent p-0 text-[17px] leading-[1.75] text-foreground",
+          "placeholder:text-muted-foreground/50",
+          "focus:outline-none focus:ring-0",
+          readOnly && "cursor-default opacity-80",
+        )}
+      />
     </section>
   );
 }
