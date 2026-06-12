@@ -1,21 +1,21 @@
 "use client";
 
-import { FileText, Sparkles } from "lucide-react";
+import { FileText, Loader2, Sparkles } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 
-import { AiAssistantDrawer } from "@/features/soap/components/ai-assistant-drawer";
+import { useDoctorMe } from "@/features/auth/hooks/use-doctor-auth";
 import { PrescriptionCommandBar } from "@/features/prescription/components/prescription-command-bar";
 import { PrescriptionHtmlEditor } from "@/features/prescription/components/prescription-html-editor";
 import { PrescriptionSummarySidebar } from "@/features/prescription/components/prescription-summary-sidebar";
 import { usePrescriptionWorkspace } from "@/features/prescription/hooks/use-prescription-workspace";
+import { AiAssistantDrawer } from "@/features/soap/components/ai-assistant-drawer";
+import { routes } from "@/shared/constants/routes";
 import { ExportService } from "@/shared/export/export.service";
-import { useDoctorMe } from "@/features/auth/hooks/use-doctor-auth";
 import { ApiErrorDisplay } from "@/shared/ui/feedback/api-error";
 import { ShellSkeletonLoader } from "@/shared/ui/feedback/skeleton-loader";
 import { Button } from "@/shared/ui/primitives/button";
-import { routes } from "@/shared/constants/routes";
-import Link from "next/link";
 
 type PrescriptionWorkspaceProps = {
   consultationId: string;
@@ -25,6 +25,7 @@ export function PrescriptionWorkspace({ consultationId }: PrescriptionWorkspaceP
   const workspace = usePrescriptionWorkspace(consultationId);
   const { data: doctor } = useDoctorMe(Boolean(workspace.consultation));
   const [aiOpen, setAiOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const searchParams = useSearchParams();
   const router = useRouter();
   const autoGenerateTriggeredRef = useRef(false);
@@ -95,8 +96,9 @@ export function PrescriptionWorkspace({ consultationId }: PrescriptionWorkspaceP
     );
   }
 
-  const patient = workspace.patient!;
-  const consultation = workspace.consultation!;
+  const patient = workspace.patient;
+  const consultation = workspace.consultation;
+  const consultationLabel = consultation.chief_complaint ?? "Consultation";
 
   const handleExportPdf = async () => {
     if (!workspace.prescription || !doctor) return;
@@ -107,7 +109,7 @@ export function PrescriptionWorkspace({ consultationId }: PrescriptionWorkspaceP
       doctorName: doctor.full_name,
       doctorRegistration: doctor.qualification ?? "",
       hospitalName: doctor.hospital_name ?? "AIRO Clinical",
-      consultationLabel: consultation.chief_complaint ?? "Consultation",
+      consultationLabel,
     });
   };
 
@@ -120,7 +122,7 @@ export function PrescriptionWorkspace({ consultationId }: PrescriptionWorkspaceP
       doctorName: doctor.full_name,
       doctorRegistration: doctor.qualification ?? "",
       hospitalName: doctor.hospital_name ?? "AIRO Clinical",
-      consultationLabel: consultation.chief_complaint ?? "Consultation",
+      consultationLabel,
       autoPrint: true,
     });
   };
@@ -136,9 +138,14 @@ export function PrescriptionWorkspace({ consultationId }: PrescriptionWorkspaceP
     !workspace.prescription &&
     !isAutoGeneratePending;
 
+  const isLoadingContent =
+    workspace.isPrescriptionLoading || workspace.isGenerating || isAutoGeneratePending;
+
   return (
     <div className="flex h-[calc(100vh-4rem)] flex-col bg-background">
       <PrescriptionCommandBar
+        patientName={patient.full_name}
+        consultationLabel={consultationLabel}
         isDirty={workspace.isDirty}
         isSaving={workspace.isSaving}
         isApproved={workspace.isApproved}
@@ -163,9 +170,11 @@ export function PrescriptionWorkspace({ consultationId }: PrescriptionWorkspaceP
           patient={patient}
           soap={workspace.soap}
           prescription={workspace.prescription}
+          collapsed={sidebarCollapsed}
+          onToggleCollapsed={() => setSidebarCollapsed((current) => !current)}
         />
 
-        <main className="relative flex min-h-0 min-w-0 flex-[0_0_65%] flex-col">
+        <main className="relative flex min-h-0 min-w-0 flex-1 flex-col">
           {workspace.soapMissing ? (
             <EmptySoapRequired consultationId={consultationId} />
           ) : showMissingPrescription ? (
@@ -174,15 +183,14 @@ export function PrescriptionWorkspace({ consultationId }: PrescriptionWorkspaceP
               generationError={workspace.generationError}
               onGenerate={() => void workspace.generate()}
             />
-          ) : workspace.isPrescriptionLoading ||
-            workspace.isGenerating ||
-            isAutoGeneratePending ? (
-            <div className="flex h-full flex-col items-center justify-center gap-2 text-sm text-muted-foreground">
-              <Sparkles className="h-6 w-6 animate-pulse" />
-              {workspace.isGenerating || isAutoGeneratePending
-                ? "AI is generating your prescription…"
-                : "Loading prescription…"}
-            </div>
+          ) : isLoadingContent ? (
+            <LoadingState
+              message={
+                workspace.isGenerating || isAutoGeneratePending
+                  ? "Generating prescription from SOAP note…"
+                  : "Loading prescription…"
+              }
+            />
           ) : (
             <PrescriptionHtmlEditor
               value={workspace.htmlDraft}
@@ -193,7 +201,7 @@ export function PrescriptionWorkspace({ consultationId }: PrescriptionWorkspaceP
           )}
 
           {workspace.saveError ? (
-            <p className="absolute bottom-4 left-4 right-4 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400">
+            <p className="absolute bottom-4 left-1/2 z-20 max-w-lg -translate-x-1/2 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-center text-sm text-red-400 shadow-lg backdrop-blur">
               {workspace.saveError}
             </p>
           ) : null}
@@ -205,15 +213,33 @@ export function PrescriptionWorkspace({ consultationId }: PrescriptionWorkspaceP
   );
 }
 
+function LoadingState({ message }: { message: string }) {
+  return (
+    <div className="flex h-full flex-col items-center justify-center gap-4 bg-[#e8eaed] dark:bg-zinc-950/80">
+      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-background shadow-md">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+      <div className="text-center">
+        <p className="text-sm font-medium text-foreground">{message}</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          This usually takes 10–30 seconds
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function EmptySoapRequired({ consultationId }: { consultationId: string }) {
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-4 p-8 text-center">
-      <FileText className="h-10 w-10 text-muted-foreground" />
+    <div className="flex h-full flex-col items-center justify-center gap-5 bg-muted/20 p-8 text-center">
+      <div className="rounded-2xl border border-dashed border-border/60 bg-background p-5 shadow-sm">
+        <FileText className="h-10 w-10 text-muted-foreground" />
+      </div>
       <div className="max-w-md space-y-2">
         <h2 className="text-xl font-semibold">SOAP note required</h2>
-        <p className="text-sm text-muted-foreground">
-          Prescriptions are generated from an approved clinical SOAP note — never
-          directly from transcripts. Create a SOAP note first.
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          Prescriptions are generated from your clinical SOAP note — never from
+          raw transcripts. Complete the SOAP note first, then return here.
         </p>
       </div>
       <Button type="button" asChild>
@@ -235,16 +261,18 @@ function EmptyPrescriptionState({
   onGenerate: () => void;
 }) {
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-4 p-8 text-center">
-      <Sparkles className="h-10 w-10 text-muted-foreground" />
+    <div className="flex h-full flex-col items-center justify-center gap-5 bg-muted/20 p-8 text-center">
+      <div className="rounded-2xl border border-dashed border-border/60 bg-background p-5 shadow-sm">
+        <Sparkles className="h-10 w-10 text-primary" />
+      </div>
       <div className="max-w-md space-y-2">
-        <h2 className="text-xl font-semibold">No prescription yet</h2>
-        <p className="text-sm text-muted-foreground">
-          Generate a structured prescription from the SOAP note. You can review
-          and edit the HTML document before approving.
+        <h2 className="text-xl font-semibold">Ready to generate</h2>
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          AI will build a structured prescription document from your SOAP note.
+          You can edit every section before approving.
         </p>
       </div>
-      <Button type="button" onClick={onGenerate} disabled={isGenerating}>
+      <Button type="button" size="lg" onClick={onGenerate} disabled={isGenerating}>
         <Sparkles className="h-4 w-4" />
         {isGenerating ? "Generating…" : "Generate Prescription"}
       </Button>
