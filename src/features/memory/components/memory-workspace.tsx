@@ -196,7 +196,7 @@ export function MemoryWorkspace({ patientId }: MemoryWorkspaceProps) {
           ) : null}
         </div>
 
-        <AiCopilotPanel />
+        <AiCopilotPanel patientId={patientId} />
       </div>
     </div>
   );

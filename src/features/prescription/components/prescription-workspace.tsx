@@ -10,6 +10,7 @@ import { PrescriptionCommandBar } from "@/features/prescription/components/presc
 import { PrescriptionHtmlEditor } from "@/features/prescription/components/prescription-html-editor";
 import { PrescriptionSummarySidebar } from "@/features/prescription/components/prescription-summary-sidebar";
 import { usePrescriptionWorkspace } from "@/features/prescription/hooks/use-prescription-workspace";
+import { useCacheWarm } from "@/features/voice-agent/hooks/use-cache-warm";
 import { AiAssistantDrawer } from "@/features/soap/components/ai-assistant-drawer";
 import { routes } from "@/shared/constants/routes";
 import { ExportService } from "@/shared/export/export.service";
@@ -23,6 +24,7 @@ type PrescriptionWorkspaceProps = {
 
 export function PrescriptionWorkspace({ consultationId }: PrescriptionWorkspaceProps) {
   const workspace = usePrescriptionWorkspace(consultationId);
+  useCacheWarm(workspace.patient?.id, Boolean(workspace.patient?.id));
   const { data: doctor } = useDoctorMe(Boolean(workspace.consultation));
   const [aiOpen, setAiOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -212,7 +214,12 @@ export function PrescriptionWorkspace({ consultationId }: PrescriptionWorkspaceP
         </main>
       </div>
 
-      <AiAssistantDrawer open={aiOpen} onOpenChange={setAiOpen} />
+      <AiAssistantDrawer
+        open={aiOpen}
+        onOpenChange={setAiOpen}
+        patientId={patient.id}
+        consultationId={consultationId}
+      />
     </div>
   );
 }

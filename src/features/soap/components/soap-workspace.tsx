@@ -13,6 +13,7 @@ import { TranscriptDrawer } from "@/features/soap/components/transcript-drawer";
 import { TranscriptPanel } from "@/features/soap/components/transcript-panel";
 import { useSoapWorkspaceLayout } from "@/features/soap/hooks/use-soap-workspace-layout";
 import { useSoapWorkspace } from "@/features/soap/hooks/use-soap-workspace";
+import { useCacheWarm } from "@/features/voice-agent/hooks/use-cache-warm";
 import { ApiErrorDisplay } from "@/shared/ui/feedback/api-error";
 import { ShellSkeletonLoader } from "@/shared/ui/feedback/skeleton-loader";
 import { Button } from "@/shared/ui/primitives/button";
@@ -23,6 +24,7 @@ type SoapWorkspaceProps = {
 
 export function SoapWorkspace({ consultationId }: SoapWorkspaceProps) {
   const workspace = useSoapWorkspace(consultationId);
+  useCacheWarm(workspace.patient?.id, Boolean(workspace.patient?.id));
   const layout = useSoapWorkspaceLayout();
   const isMobile = useIsMobile();
   const isTablet = useIsTablet();
@@ -188,6 +190,8 @@ export function SoapWorkspace({ consultationId }: SoapWorkspaceProps) {
       <AiAssistantDrawer
         open={layout.aiAssistantOpen}
         onOpenChange={layout.setAiAssistantOpen}
+        patientId={workspace.patient?.id}
+        consultationId={consultationId}
       />
 
       <TranscriptDrawer
