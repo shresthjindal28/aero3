@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import { AudioRecorderStatus } from "@/features/sessions/components/audio-recorder-status";
+import { SessionRecordingBanner } from "@/features/sessions/components/session-recording-banner";
 import { SessionControls } from "@/features/sessions/components/session-controls";
 import { SessionHeader } from "@/features/sessions/components/session-header";
 import { SessionMetrics } from "@/features/sessions/components/session-metrics";
@@ -58,6 +59,12 @@ export function SessionWorkspace({ sessionId }: SessionWorkspaceProps) {
 
       <div className="grid min-h-0 flex-1 gap-4 p-4 lg:grid-cols-[380px_1fr] lg:p-6">
         <aside className="space-y-4">
+          <SessionRecordingBanner
+            session={workspace.session}
+            recordingState={workspace.recordingState}
+            chunksUploaded={workspace.chunksUploaded}
+            onStartRecording={() => void workspace.startRecording()}
+          />
           <section className="rounded-xl border border-border/60 bg-card/50 p-4">
             <h3 className="text-sm font-medium">Patient</h3>
             <Link
@@ -100,7 +107,11 @@ export function SessionWorkspace({ sessionId }: SessionWorkspaceProps) {
               onEnd={() => void workspace.endSession()}
             />
             {workspace.sessionError ? (
-              <p className="text-sm text-red-400">{workspace.sessionError}</p>
+              <p className="text-sm text-red-400" role="alert">
+                {workspace.sessionError === "Microphone permission denied"
+                  ? "Microphone access is required to record this visit. Allow microphone access in your browser, then tap Start recording."
+                  : workspace.sessionError}
+              </p>
             ) : null}
           </section>
 
@@ -124,6 +135,10 @@ export function SessionWorkspace({ sessionId }: SessionWorkspaceProps) {
             segments={workspace.transcriptSegments}
             autoScrollEnabled={workspace.autoScrollEnabled}
             onAutoScrollChange={workspace.setAutoScrollEnabled}
+            sessionStatus={workspace.session.status}
+            recordingState={workspace.recordingState}
+            chunksUploaded={workspace.chunksUploaded}
+            lastChunkNumber={workspace.session.last_chunk_number}
           />
         </section>
       </div>

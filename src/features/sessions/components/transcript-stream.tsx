@@ -4,18 +4,35 @@ import { useEffect, useRef } from "react";
 
 import { TranscriptSegment } from "@/features/sessions/components/transcript-segment";
 import type { TranscriptSegment as TranscriptSegmentType } from "@/features/sessions/types/transcript.types";
+import { getTranscriptPlaceholderMessage } from "@/features/sessions/utils/session.utils";
+import type { RecordingState } from "@/features/sessions/services/audio-recorder.service";
+import type { Session } from "@/features/sessions/types/session.types";
 
 type TranscriptStreamProps = {
   segments: TranscriptSegmentType[];
   autoScrollEnabled: boolean;
   onAutoScrollChange: (enabled: boolean) => void;
+  sessionStatus: Session["status"];
+  recordingState: RecordingState;
+  chunksUploaded: number;
+  lastChunkNumber: number;
 };
 
 export function TranscriptStream({
   segments,
   autoScrollEnabled,
   onAutoScrollChange,
+  sessionStatus,
+  recordingState,
+  chunksUploaded,
+  lastChunkNumber,
 }: TranscriptStreamProps) {
+  const placeholderMessage = getTranscriptPlaceholderMessage({
+    sessionStatus,
+    recordingState,
+    chunksUploaded,
+    lastChunkNumber,
+  });
   const containerRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const userScrolledRef = useRef(false);
@@ -62,7 +79,7 @@ export function TranscriptStream({
       >
         {segments.length === 0 ? (
           <div className="flex h-full items-center justify-center px-6 text-center text-sm text-muted-foreground">
-            Transcript will appear here as audio is processed…
+            {placeholderMessage}
           </div>
         ) : (
           <div className="space-y-1">

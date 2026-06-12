@@ -11,10 +11,10 @@ type AudioRecorderStatusProps = {
 };
 
 const stateLabels: Record<RecordingState, string> = {
-  idle: "Ready",
-  recording: "Recording",
-  paused: "Paused",
-  stopped: "Stopped",
+  idle: "Not recording",
+  recording: "Recording visit audio",
+  paused: "Recording paused",
+  stopped: "Recording stopped",
 };
 
 export function AudioRecorderStatus({
@@ -49,7 +49,7 @@ export function AudioRecorderStatus({
             )}
           />
         )}
-        <span className="capitalize">{stateLabels[recordingState]}</span>
+        <span>{stateLabels[recordingState]}</span>
       </div>
 
       {micPermission === "denied" ? (

@@ -3,48 +3,57 @@
 import { usePathname } from "next/navigation";
 import { useMemo } from "react";
 
-import { resolveBreadcrumbs, type BreadcrumbSegment } from "@/config/breadcrumbs.config";
+import {
+  resolveBreadcrumbs,
+  UUID_PATTERN,
+  type BreadcrumbSegment,
+} from "@/config/breadcrumbs.config";
 import { usePatient } from "@/features/patients/hooks/use-patient";
 import { routes } from "@/shared/constants/routes";
 
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-
 export function usePatientBreadcrumbs(): BreadcrumbSegment[] {
   const pathname = usePathname();
-  const segments = pathname.split("/").filter(Boolean);
+  const patientMatch = pathname.match(/^\/patients\/([^/]+)/);
   const patientId =
-    segments[0] === "patients" && segments[1] && UUID_PATTERN.test(segments[1])
-      ? segments[1]
-      : null;
+    patientMatch?.[1] && UUID_PATTERN.test(patientMatch[1]) ? patientMatch[1] : null;
 
   const { data: patient } = usePatient(patientId ?? "", Boolean(patientId));
 
   return useMemo(() => {
-    const base = resolveBreadcrumbs(pathname);
-
-    if (!patientId || !patient) {
-      return base;
+    if (!patientId) {
+      return resolveBreadcrumbs(pathname);
     }
 
-    const patientLabel = patient.full_name;
+    const patientName = patient?.full_name ?? "Patient";
     const detailHref = routes.app.patientDetail(patientId);
+    const patientTrail: BreadcrumbSegment[] = [
+      { label: "Patients", href: routes.app.patients },
+      { label: patientName, href: detailHref },
+    ];
+
+    if (pathname.endsWith("/consultations/new")) {
+      return [...patientTrail, { label: "New consultation" }];
+    }
 
     if (pathname.endsWith("/edit")) {
-      return [
-        { label: "Patients", href: routes.app.patients },
-        { label: patientLabel, href: detailHref },
-        { label: "Edit" },
-      ];
+      return [...patientTrail, { label: "Edit" }];
+    }
+
+    if (pathname.endsWith("/memory")) {
+      return [...patientTrail, { label: "Memory" }];
+    }
+
+    if (pathname.endsWith("/documents")) {
+      return [...patientTrail, { label: "Documents" }];
     }
 
     if (pathname === detailHref) {
       return [
         { label: "Patients", href: routes.app.patients },
-        { label: patientLabel },
+        { label: patientName },
       ];
     }
 
-    return base;
+    return resolveBreadcrumbs(pathname);
   }, [pathname, patient, patientId]);
 }

@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils/cn";
 
 type ConnectionBadgeProps = {
   status: ConnectionDisplayStatus;
+  label?: string;
 };
 
 const statusConfig: Record<
@@ -33,7 +34,7 @@ const statusConfig: Record<
   },
 };
 
-export function ConnectionBadge({ status }: ConnectionBadgeProps) {
+export function ConnectionBadge({ status, label }: ConnectionBadgeProps) {
   const config = statusConfig[status];
 
   return (
@@ -50,7 +51,7 @@ export function ConnectionBadge({ status }: ConnectionBadgeProps) {
       ) : (
         <WifiOff className="h-3.5 w-3.5" />
       )}
-      {config.label}
+      {label ?? config.label}
     </span>
   );
 }

@@ -41,6 +41,7 @@ export function useSessionWorkspace(sessionId: string) {
   const elapsedAnchorRef = useRef<number | null>(null);
   const pausedAccumulatedRef = useRef(0);
   const pauseStartedAtRef = useRef<number | null>(null);
+  const autoStartAttemptedRef = useRef(false);
 
   const {
     recordingState,
@@ -136,6 +137,46 @@ export function useSessionWorkspace(sessionId: string) {
   ]);
 
   useEffect(() => {
+    if (!session || session.status === "ended") return;
+    if (autoStartAttemptedRef.current) return;
+    if (!uploadManagerRef.current || !recorderRef.current) return;
+    if (session.last_chunk_number > 0) return;
+
+    autoStartAttemptedRef.current = true;
+
+    const startAutomatically = async () => {
+      const recorder = recorderRef.current;
+      const uploadManager = uploadManagerRef.current;
+      if (!recorder || !uploadManager) return;
+
+      try {
+        const permission = await recorder.requestPermission();
+        setMicPermission(permission === "granted" ? "granted" : "prompt");
+
+        await recorder.start(
+          {
+            onChunk: (chunk) => {
+              uploadManager.enqueue(chunk);
+            },
+            onStateChange: setRecordingState,
+            onError: (error) => setSessionError(error.message),
+          },
+          session.last_chunk_number,
+        );
+      } catch {
+        autoStartAttemptedRef.current = false;
+      }
+    };
+
+    void startAutomatically();
+  }, [
+    session,
+    setMicPermission,
+    setRecordingState,
+    setSessionError,
+  ]);
+
+  useEffect(() => {
     if (!session?.started_at) return;
 
     elapsedAnchorRef.current = new Date(session.started_at).getTime();
@@ -214,11 +255,22 @@ export function useSessionWorkspace(sessionId: string) {
   }, [resumeMutation, session?.status]);
 
   const endSessionAction = useCallback(async () => {
+    const hasAudio =
+      chunksUploaded > 0 || (session?.last_chunk_number ?? 0) > 0;
+
+    if (!hasAudio && session?.status !== "ended") {
+      const confirmed = window.confirm(
+        "No audio has been recorded for this visit yet. If you end now, no transcript will be created.\n\nEnd session anyway?",
+      );
+      if (!confirmed) return;
+    }
+
     await recorderRef.current?.stop();
     await uploadManagerRef.current?.flush();
     await endMutation.mutateAsync();
     realtimeRef.current?.disconnect();
-  }, [endMutation]);
+    setConnectionStatus("disconnected");
+  }, [chunksUploaded, endMutation, session?.last_chunk_number, session?.status, setConnectionStatus]);
 
   const controls = useMemo(
     () => ({
