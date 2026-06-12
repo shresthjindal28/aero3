@@ -13,20 +13,27 @@ export function MemorySearchResults({
   isSearching,
 }: MemorySearchResultsProps) {
   if (isSearching) {
-    return <p className="text-sm text-muted-foreground">Searching memory…</p>;
+    return (
+      <p className="text-sm text-muted-foreground">
+        Searching this patient&apos;s records…
+      </p>
+    );
   }
 
   if (!query.trim()) {
     return (
       <p className="text-sm text-muted-foreground">
-        Enter a query to search vector memory.
+        Type a question or keyword above to search past visits and notes.
       </p>
     );
   }
 
   if (results.length === 0) {
     return (
-      <p className="text-sm text-muted-foreground">No similar memories found.</p>
+      <p className="text-sm text-muted-foreground">
+        Nothing matched your search. Try different wording, or check back after more
+        visits are documented.
+      </p>
     );
   }
 

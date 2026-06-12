@@ -17,12 +17,12 @@ export function MemoryProfileCard({ profile, isLoading }: MemoryProfileCardProps
       </div>
 
       {isLoading ? (
-        <p className="mt-4 text-sm text-muted-foreground">Loading profile…</p>
-      ) : profile ? (
+        <p className="mt-4 text-sm text-muted-foreground">
+          Loading this patient&apos;s memory summary…
+        </p>
+      ) : profile?.summary?.trim() ? (
         <div className="mt-4 space-y-3">
-          <p className="text-sm leading-relaxed text-foreground/90">
-            {profile.summary || "No memory profile generated yet."}
-          </p>
+          <p className="text-sm leading-relaxed text-foreground/90">{profile.summary}</p>
           {profile.last_updated_at ? (
             <p className="text-xs text-muted-foreground">
               Last updated {formatDateTime(profile.last_updated_at)}
@@ -31,7 +31,8 @@ export function MemoryProfileCard({ profile, isLoading }: MemoryProfileCardProps
         </div>
       ) : (
         <p className="mt-4 text-sm text-muted-foreground">
-          Memory profile will appear after consultations are processed.
+          A clinical summary will appear here after you complete and document a
+          consultation.
         </p>
       )}
     </section>

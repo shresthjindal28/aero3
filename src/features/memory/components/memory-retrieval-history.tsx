@@ -12,7 +12,7 @@ export function MemoryRetrievalHistory({ records }: MemoryRetrievalHistoryProps)
 
       {records.length === 0 ? (
         <p className="mt-4 text-sm text-muted-foreground">
-          Search queries will appear here.
+          Your recent memory searches will appear here.
         </p>
       ) : (
         <ul className="mt-4 space-y-2">

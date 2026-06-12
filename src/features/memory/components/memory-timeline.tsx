@@ -20,9 +20,11 @@ export function MemoryTimeline({ items, isLoading }: MemoryTimelineProps) {
       <h2 className="text-sm font-medium">Memory timeline</h2>
 
       {isLoading ? (
-        <p className="mt-4 text-sm text-muted-foreground">Loading timeline…</p>
+        <p className="mt-4 text-sm text-muted-foreground">Loading visit history…</p>
       ) : items.length === 0 ? (
-        <p className="mt-4 text-sm text-muted-foreground">No memory updates yet.</p>
+        <p className="mt-4 text-sm text-muted-foreground">
+          Past visits and notes will appear here as you document care.
+        </p>
       ) : (
         <ol className="mt-4 space-y-3">
           {items.map((item) => (

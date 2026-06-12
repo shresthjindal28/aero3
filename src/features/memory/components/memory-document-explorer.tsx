@@ -27,9 +27,12 @@ export function MemoryDocumentExplorer({
       </div>
 
       {isLoading ? (
-        <p className="p-4 text-sm text-muted-foreground">Loading documents…</p>
+        <p className="p-4 text-sm text-muted-foreground">Loading clinical records…</p>
       ) : documents.length === 0 ? (
-        <p className="p-4 text-sm text-muted-foreground">No memory documents yet.</p>
+        <p className="p-4 text-sm text-muted-foreground">
+          Consultation notes, transcripts, and summaries will be stored here for
+          quick reference.
+        </p>
       ) : (
         <div className="grid min-h-0 flex-1 md:grid-cols-[220px_1fr]">
           <ul className="overflow-y-auto border-b border-border/60 p-2 md:border-b-0 md:border-r">

@@ -12,6 +12,9 @@ type MemoryRetrievalState = {
 
 const MAX_HISTORY = 50;
 
+/** Stable reference so Zustand selectors do not re-render on every read. */
+export const EMPTY_MEMORY_HISTORY: MemoryRetrievalRecord[] = [];
+
 export const useMemoryRetrievalStore = create<MemoryRetrievalState>()(
   persist(
     (set, get) => ({
@@ -27,7 +30,7 @@ export const useMemoryRetrievalStore = create<MemoryRetrievalState>()(
           };
         });
       },
-      getHistory: (patientId) => get().history[patientId] ?? [],
+      getHistory: (patientId) => get().history[patientId] ?? EMPTY_MEMORY_HISTORY,
       clearHistory: (patientId) => {
         set((state) => {
           const next = { ...state.history };
