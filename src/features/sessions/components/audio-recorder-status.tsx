@@ -11,10 +11,10 @@ type AudioRecorderStatusProps = {
 };
 
 const stateLabels: Record<RecordingState, string> = {
-  idle: "Not recording",
-  recording: "Recording visit audio",
+  idle: "Preparing microphone…",
+  recording: "Recording this visit",
   paused: "Recording paused",
-  stopped: "Recording stopped",
+  stopped: "Recording ended",
 };
 
 export function AudioRecorderStatus({

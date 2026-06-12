@@ -3,7 +3,7 @@
 import Link from "next/link";
 
 import { AudioRecorderStatus } from "@/features/sessions/components/audio-recorder-status";
-import { SessionRecordingBanner } from "@/features/sessions/components/session-recording-banner";
+import { MicAccessBanner } from "@/features/sessions/components/mic-access-banner";
 import { SessionControls } from "@/features/sessions/components/session-controls";
 import { SessionHeader } from "@/features/sessions/components/session-header";
 import { SessionMetrics } from "@/features/sessions/components/session-metrics";
@@ -59,12 +59,11 @@ export function SessionWorkspace({ sessionId }: SessionWorkspaceProps) {
 
       <div className="grid min-h-0 flex-1 gap-4 p-4 lg:grid-cols-[380px_1fr] lg:p-6">
         <aside className="space-y-4">
-          <SessionRecordingBanner
-            session={workspace.session}
-            recordingState={workspace.recordingState}
-            chunksUploaded={workspace.chunksUploaded}
-            onStartRecording={() => void workspace.startRecording()}
-          />
+          {workspace.needsMicrophoneAccess ? (
+            <MicAccessBanner
+              onEnableMicrophone={() => void workspace.retryMicrophoneAccess()}
+            />
+          ) : null}
           <section className="rounded-xl border border-border/60 bg-card/50 p-4">
             <h3 className="text-sm font-medium">Patient</h3>
             <Link
@@ -96,21 +95,18 @@ export function SessionWorkspace({ sessionId }: SessionWorkspaceProps) {
           <section className="space-y-4 rounded-xl border border-border/60 bg-card/50 p-4">
             <h3 className="text-sm font-medium">Session controls</h3>
             <SessionControls
-              canStart={workspace.controls.canStart}
               canPause={workspace.controls.canPause}
               canResume={workspace.controls.canResume}
               canEnd={workspace.controls.canEnd}
               isEnding={workspace.controls.isEnding}
-              onStart={() => void workspace.startRecording()}
               onPause={() => void workspace.pauseRecording()}
               onResume={() => void workspace.resumeRecording()}
               onEnd={() => void workspace.endSession()}
             />
-            {workspace.sessionError ? (
+            {workspace.sessionError &&
+            workspace.sessionError !== "Microphone permission denied" ? (
               <p className="text-sm text-red-400" role="alert">
-                {workspace.sessionError === "Microphone permission denied"
-                  ? "Microphone access is required to record this visit. Allow microphone access in your browser, then tap Start recording."
-                  : workspace.sessionError}
+                {workspace.sessionError}
               </p>
             ) : null}
           </section>

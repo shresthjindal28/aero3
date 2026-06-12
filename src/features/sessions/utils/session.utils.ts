@@ -19,10 +19,7 @@ export function formatSegmentTime(ms: number): string {
 }
 
 export function formatSpeaker(provider: string): string {
-  if (provider === "deepgram" || provider === "openai") {
-    return "Transcript";
-  }
-  return provider.replace(/_/g, " ");
+  return "Transcript";
 }
 
 const SESSION_STATUS_LABELS: Record<string, string> = {
@@ -52,7 +49,7 @@ export function getTranscriptPlaceholderMessage({
   const hasAudio = chunksUploaded > 0 || lastChunkNumber > 0;
 
   if (sessionStatus === "ended" && !hasAudio) {
-    return "No audio was captured during this visit. Start a new session and tap Start recording before ending the visit.";
+    return "No audio was captured during this visit. Start a new session and allow microphone access before ending the visit.";
   }
 
   if (sessionStatus === "ended" && hasAudio) {
@@ -60,12 +57,16 @@ export function getTranscriptPlaceholderMessage({
   }
 
   if (recordingState === "recording" && !hasAudio) {
-    return "Listening… your transcript will appear here as the conversation is processed.";
+    return "Listening… your transcript will appear here as you speak with the patient.";
+  }
+
+  if (recordingState === "paused") {
+    return "Recording is paused. Tap Resume to continue capturing this visit.";
   }
 
   if (recordingState === "idle" || recordingState === "stopped") {
-    return "Tap Start recording to capture audio from this visit. The live transcript will appear here.";
+    return "Preparing to record this visit… allow microphone access when prompted.";
   }
 
-  return "Transcript will appear here as audio is processed.";
+  return "Your live transcript will appear here as the visit is recorded.";
 }

@@ -41,7 +41,9 @@ export function useSessionWorkspace(sessionId: string) {
   const elapsedAnchorRef = useRef<number | null>(null);
   const pausedAccumulatedRef = useRef(0);
   const pauseStartedAtRef = useRef<number | null>(null);
-  const autoStartAttemptedRef = useRef(false);
+  const recordingStartedRef = useRef(false);
+  const sessionRef = useRef(session);
+  sessionRef.current = session;
 
   const {
     recordingState,
@@ -90,6 +92,47 @@ export function useSessionWorkspace(sessionId: string) {
     };
   }, [reset, sessionId]);
 
+  const beginRecording = useCallback(async () => {
+    const currentSession = sessionRef.current;
+    if (!currentSession || currentSession.status === "ended") {
+      return;
+    }
+
+    const recorder = recorderRef.current;
+    const uploadManager = uploadManagerRef.current;
+    if (!recorder || !uploadManager) return;
+
+    if (recorder.getState() === "recording" || recorder.getState() === "paused") {
+      return;
+    }
+
+    try {
+      setSessionError(null);
+
+      await recorder.start(
+        {
+          onChunk: (chunk) => {
+            uploadManager.enqueue(chunk);
+          },
+          onStateChange: setRecordingState,
+          onError: (error) => setSessionError(error.message),
+        },
+        currentSession.last_chunk_number,
+      );
+
+      recordingStartedRef.current = true;
+      setMicPermission("granted");
+
+      if (currentSession.status === "paused") {
+        recorder.pause();
+      }
+    } catch {
+      setMicPermission("denied");
+      setSessionError("Microphone permission denied");
+      recordingStartedRef.current = false;
+    }
+  }, [setMicPermission, setRecordingState, setSessionError]);
+
   useEffect(() => {
     if (!session || !consultation) return;
 
@@ -123,13 +166,18 @@ export function useSessionWorkspace(sessionId: string) {
     realtimeRef.current = realtime;
     realtime.connect();
 
+    if (session.status !== "ended") {
+      void beginRecording();
+    }
+
     return () => {
       realtime.disconnect();
     };
   }, [
-    consultation,
+    beginRecording,
+    consultation?.id,
     refreshTranscript,
-    session,
+    session?.id,
     setChunkMetrics,
     setConnectionStatus,
     setSessionError,
@@ -137,44 +185,17 @@ export function useSessionWorkspace(sessionId: string) {
   ]);
 
   useEffect(() => {
-    if (!session || session.status === "ended") return;
-    if (autoStartAttemptedRef.current) return;
-    if (!uploadManagerRef.current || !recorderRef.current) return;
-    if (session.last_chunk_number > 0) return;
+    const recorder = recorderRef.current;
+    if (!recorder || !session || session.status === "ended") return;
 
-    autoStartAttemptedRef.current = true;
+    if (session.status === "paused" && recorder.getState() === "recording") {
+      recorder.pause();
+    }
 
-    const startAutomatically = async () => {
-      const recorder = recorderRef.current;
-      const uploadManager = uploadManagerRef.current;
-      if (!recorder || !uploadManager) return;
-
-      try {
-        const permission = await recorder.requestPermission();
-        setMicPermission(permission === "granted" ? "granted" : "prompt");
-
-        await recorder.start(
-          {
-            onChunk: (chunk) => {
-              uploadManager.enqueue(chunk);
-            },
-            onStateChange: setRecordingState,
-            onError: (error) => setSessionError(error.message),
-          },
-          session.last_chunk_number,
-        );
-      } catch {
-        autoStartAttemptedRef.current = false;
-      }
-    };
-
-    void startAutomatically();
-  }, [
-    session,
-    setMicPermission,
-    setRecordingState,
-    setSessionError,
-  ]);
+    if (session.status === "active" && recorder.getState() === "paused") {
+      recorder.resume();
+    }
+  }, [session?.status]);
 
   useEffect(() => {
     if (!session?.started_at) return;
@@ -205,40 +226,9 @@ export function useSessionWorkspace(sessionId: string) {
     }
   }, [session?.status]);
 
-  const startRecording = useCallback(async () => {
-    if (!session || session.status === "ended") {
-      setSessionError("Session is no longer active");
-      return;
-    }
-
-    const recorder = recorderRef.current;
-    const uploadManager = uploadManagerRef.current;
-    if (!recorder || !uploadManager) return;
-
-    try {
-      const permission = await recorder.requestPermission();
-      setMicPermission(permission === "granted" ? "granted" : "prompt");
-
-      await recorder.start(
-        {
-          onChunk: (chunk) => {
-            uploadManager.enqueue(chunk);
-          },
-          onStateChange: setRecordingState,
-          onError: (error) => setSessionError(error.message),
-        },
-        session.last_chunk_number,
-      );
-    } catch {
-      setMicPermission("denied");
-      setSessionError("Microphone permission denied");
-    }
-  }, [
-    session,
-    setMicPermission,
-    setRecordingState,
-    setSessionError,
-  ]);
+  const retryMicrophoneAccess = useCallback(async () => {
+    await beginRecording();
+  }, [beginRecording]);
 
   const pauseRecording = useCallback(async () => {
     recorderRef.current?.pause();
@@ -274,10 +264,6 @@ export function useSessionWorkspace(sessionId: string) {
 
   const controls = useMemo(
     () => ({
-      canStart:
-        session?.status !== "ended" &&
-        recordingState !== "recording" &&
-        recordingState !== "paused",
       canPause:
         session?.status === "active" && recordingState === "recording",
       canResume:
@@ -288,6 +274,11 @@ export function useSessionWorkspace(sessionId: string) {
     }),
     [endMutation.isPending, recordingState, session?.status],
   );
+
+  const needsMicrophoneAccess =
+    session?.status !== "ended" &&
+    (micPermission === "denied" ||
+      workspaceError === "Microphone permission denied");
 
   return {
     session,
@@ -308,7 +299,8 @@ export function useSessionWorkspace(sessionId: string) {
     autoScrollEnabled,
     uploadBackpressure,
     controls,
-    startRecording,
+    needsMicrophoneAccess,
+    retryMicrophoneAccess,
     pauseRecording,
     resumeRecording,
     endSession: endSessionAction,
