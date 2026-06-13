@@ -54,6 +54,9 @@ export function AdminDashboardPage() {
           <Link href={routes.admin.doctors}>Manage doctors</Link>
         </Button>
         <Button type="button" variant="outline" asChild>
+          <Link href={routes.admin.systemHealth}>System health</Link>
+        </Button>
+        <Button type="button" variant="outline" asChild>
           <Link href={routes.admin.aiJobs}>AI jobs</Link>
         </Button>
       </div>
