@@ -18,7 +18,7 @@ export function formatSegmentTime(ms: number): string {
   return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 
-export function formatSpeaker(provider: string): string {
+export function formatSpeaker(_provider: string): string {
   return "Transcript";
 }
 

@@ -175,9 +175,9 @@ export function useSessionWorkspace(sessionId: string) {
     };
   }, [
     beginRecording,
-    consultation?.id,
+    consultation,
     refreshTranscript,
-    session?.id,
+    session,
     setChunkMetrics,
     setConnectionStatus,
     setSessionError,
@@ -195,7 +195,7 @@ export function useSessionWorkspace(sessionId: string) {
     if (session.status === "active" && recorder.getState() === "paused") {
       recorder.resume();
     }
-  }, [session?.status]);
+  }, [session]);
 
   useEffect(() => {
     if (!session?.started_at) return;

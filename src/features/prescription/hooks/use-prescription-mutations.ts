@@ -82,7 +82,7 @@ export function useExportPrescriptionAudit(consultationId: string) {
   });
 }
 
-export function usePrintPrescriptionAudit(consultationId: string) {
+export function usePrintPrescriptionAudit(_consultationId: string) {
   return useMutation({
     mutationFn: (prescriptionId: string) => printPrescription(prescriptionId),
   });
