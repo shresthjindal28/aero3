@@ -3,8 +3,10 @@
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
-import { doctorNavigation } from "@/config/navigation.config";
-import { appConfig } from "@/config/app.config";
+import {
+  doctorNavigation,
+  doctorSettingsNavigation,
+} from "@/config/navigation.config";
 import { useDoctorLogout, useDoctorMe } from "@/features/auth/hooks/use-doctor-auth";
 import { useAppBreadcrumbs } from "@/shared/hooks/use-app-breadcrumbs";
 import { useShellStore } from "@/shared/store/shell.store";
@@ -67,13 +69,17 @@ export function DoctorAppShell({ children }: DoctorAppShellProps) {
   }
 
   return (
-    <div className="flex min-h-screen w-full bg-background">
+    <div className="flex h-screen overflow-hidden w-full bg-background">
       {!immersive ? (
-        <div className="hidden md:flex">
+        <div className="hidden h-full shrink-0 md:flex">
           <Sidebar
-            brand={appConfig.name}
-            subtitle="Clinical Workspace"
+            user={{
+              name: doctor.full_name,
+              email: doctor.email,
+              avatarUrl: doctor.profile_picture_url,
+            }}
             items={doctorNavigation}
+            footerItems={doctorSettingsNavigation}
             collapsed={sidebarCollapsed}
           />
         </div>
@@ -81,13 +87,17 @@ export function DoctorAppShell({ children }: DoctorAppShellProps) {
 
       {!immersive ? (
         <MobileSidebarDrawer
-          brand={appConfig.name}
-          subtitle="Clinical Workspace"
+          user={{
+            name: doctor.full_name,
+            email: doctor.email,
+            avatarUrl: doctor.profile_picture_url,
+          }}
           items={doctorNavigation}
+          footerItems={doctorSettingsNavigation}
         />
       ) : null}
 
-      <div className="flex min-h-0 min-w-0 w-full flex-1 flex-col">
+      <div className="flex min-h-0 min-w-0 w-full flex-1 flex-col overflow-hidden">
         {!immersive ? (
           <AppHeader
             breadcrumbs={breadcrumbs}
@@ -108,7 +118,7 @@ export function DoctorAppShell({ children }: DoctorAppShellProps) {
               ? immersive
                 ? "h-dvh min-h-0 overflow-hidden"
                 : "min-h-0 flex-1 overflow-hidden"
-              : "flex-1"
+              : "min-h-0 flex-1 overflow-y-auto"
           }
           id="main-content"
           tabIndex={-1}

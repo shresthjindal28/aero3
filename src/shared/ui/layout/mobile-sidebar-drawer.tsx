@@ -6,15 +6,23 @@ import { Sidebar } from "@/shared/ui/layout/sidebar";
 import { Sheet, SheetContent } from "@/shared/ui/primitives/sheet";
 
 type MobileSidebarDrawerProps = {
-  brand: string;
+  brand?: string;
   subtitle?: string;
+  user?: {
+    name: string;
+    email: string;
+    avatarUrl?: string | null;
+  };
   items: NavItem[];
+  footerItems?: NavItem[];
 };
 
 export function MobileSidebarDrawer({
   brand,
   subtitle,
+  user,
   items,
+  footerItems,
 }: MobileSidebarDrawerProps) {
   const { mobileSidebarOpen, setMobileSidebarOpen } = useShellStore();
 
@@ -24,7 +32,9 @@ export function MobileSidebarDrawer({
         <Sidebar
           brand={brand}
           subtitle={subtitle}
+          user={user}
           items={items}
+          footerItems={footerItems}
           onNavigate={() => setMobileSidebarOpen(false)}
         />
       </SheetContent>

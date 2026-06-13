@@ -1,8 +1,6 @@
 import {
-  Brain,
   BriefcaseMedical,
   FileText,
-  FolderOpen,
   LayoutDashboard,
   Mic,
   Settings,
@@ -25,8 +23,9 @@ export const doctorNavigation: NavItem[] = [
   { label: "Patients", href: routes.app.patients, icon: Users },
   { label: "Consultations", href: routes.app.consultations, icon: Stethoscope },
   { label: "Live Sessions", href: routes.app.sessions, icon: Mic },
-  { label: "Memory", href: routes.app.memory, icon: Brain },
-  { label: "Documents", href: routes.app.documents, icon: FolderOpen },
+];
+
+export const doctorSettingsNavigation: NavItem[] = [
   { label: "Settings", href: routes.app.settings, icon: Settings },
 ];
 

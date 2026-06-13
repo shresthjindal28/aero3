@@ -2,21 +2,45 @@
 
 import type { NavItem } from "@/config/navigation.config";
 import { cn } from "@/lib/utils/cn";
-import { SidebarNav } from "@/shared/ui/layout/sidebar-nav";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/shared/ui/primitives/avatar";
+import { SidebarFooterNav, SidebarNav } from "@/shared/ui/layout/sidebar-nav";
+
+type SidebarUser = {
+  name: string;
+  email: string;
+  avatarUrl?: string | null;
+};
 
 type SidebarProps = {
-  brand: string;
+  brand?: string;
   subtitle?: string;
+  user?: SidebarUser;
   items: NavItem[];
+  footerItems?: NavItem[];
   collapsed?: boolean;
   className?: string;
   onNavigate?: () => void;
 };
 
+function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
 export function Sidebar({
   brand,
   subtitle,
+  user,
   items,
+  footerItems,
   collapsed = false,
   className,
   onNavigate,
@@ -24,27 +48,53 @@ export function Sidebar({
   return (
     <aside
       className={cn(
-        "flex h-full flex-col border-r bg-card/50",
+        "flex h-full flex-col overflow-hidden border-r bg-card/50",
         collapsed ? "w-[72px]" : "w-64",
         className,
       )}
     >
-      <div className={cn("border-b px-4 py-5", collapsed && "px-3")}>
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-sm font-bold text-primary-foreground">
-            A
-          </div>
-          {!collapsed ? (
-            <div>
-              <p className="text-sm font-semibold tracking-tight">{brand}</p>
-              {subtitle ? (
-                <p className="text-xs text-muted-foreground">{subtitle}</p>
+      <div className={cn("shrink-0 border-b px-4 py-5", collapsed && "px-3")}>
+        {user ? (
+          <div className="flex items-center gap-3">
+            <Avatar className="h-9 w-9 shrink-0">
+              {user.avatarUrl ? (
+                <AvatarImage src={user.avatarUrl} alt={user.name} />
               ) : null}
+              <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+            </Avatar>
+            {!collapsed ? (
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold tracking-tight">
+                  {user.name}
+                </p>
+                <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+              </div>
+            ) : null}
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-sm font-bold text-primary-foreground">
+              A
             </div>
-          ) : null}
-        </div>
+            {!collapsed ? (
+              <div>
+                <p className="text-sm font-semibold tracking-tight">{brand}</p>
+                {subtitle ? (
+                  <p className="text-xs text-muted-foreground">{subtitle}</p>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        )}
       </div>
       <SidebarNav items={items} collapsed={collapsed} onNavigate={onNavigate} />
+      {footerItems?.length ? (
+        <SidebarFooterNav
+          items={footerItems}
+          collapsed={collapsed}
+          onNavigate={onNavigate}
+        />
+      ) : null}
     </aside>
   );
 }
