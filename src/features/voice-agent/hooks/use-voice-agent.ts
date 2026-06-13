@@ -5,6 +5,7 @@ import { useCallback, useRef, useState } from "react";
 import {
   interruptVoiceSession,
   startVoiceSession,
+  streamVoiceAudioUtterance,
   streamVoiceUtterance,
   type VoiceUtteranceResponse,
 } from "@/features/voice-agent/api/voice-agent.api";
@@ -17,6 +18,8 @@ export type VoiceTurn = {
   cache_hit?: boolean;
   intent?: string;
   streaming?: boolean;
+  stt_latency_ms?: number;
+  tts_latency_ms?: number;
 };
 
 type UseVoiceAgentOptions = {
@@ -24,12 +27,23 @@ type UseVoiceAgentOptions = {
   consultationId?: string;
 };
 
+function playBase64Audio(base64: string, mime: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const src = `data:${mime};base64,${base64}`;
+    const audio = new Audio(src);
+    audio.onended = () => resolve();
+    audio.onerror = () => reject(new Error("Audio playback failed"));
+    void audio.play().catch(reject);
+  });
+}
+
 export function useVoiceAgent({ patientId, consultationId }: UseVoiceAgentOptions) {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [turns, setTurns] = useState<VoiceTurn[]>([]);
   const [isStarting, setIsStarting] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const [briefingPreview, setBriefingPreview] = useState<string | null>(null);
   const [alertsPreview, setAlertsPreview] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -38,6 +52,9 @@ export function useVoiceAgent({ patientId, consultationId }: UseVoiceAgentOption
   const abortRef = useRef<AbortController | null>(null);
   const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
   const assistantTurnIdRef = useRef<string | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const serverAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const stopOutput = useCallback(() => {
     abortRef.current?.abort();
@@ -46,7 +63,13 @@ export function useVoiceAgent({ patientId, consultationId }: UseVoiceAgentOption
       window.speechSynthesis.cancel();
     }
     speechRef.current = null;
+    serverAudioRef.current?.pause();
+    serverAudioRef.current = null;
+    if (mediaRecorderRef.current?.state === "recording") {
+      mediaRecorderRef.current.stop();
+    }
     setIsSpeaking(false);
+    setIsListening(false);
     setIsThinking(false);
     if (sessionIdRef.current) {
       void interruptVoiceSession(sessionIdRef.current);
@@ -60,7 +83,7 @@ export function useVoiceAgent({ patientId, consultationId }: UseVoiceAgentOption
     );
   }, []);
 
-  const speak = useCallback((text: string) => {
+  const speakFallback = useCallback((text: string) => {
     if (typeof window === "undefined" || !window.speechSynthesis) return;
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
@@ -94,6 +117,59 @@ export function useVoiceAgent({ patientId, consultationId }: UseVoiceAgentOption
     }
   }, [consultationId, patientId]);
 
+  const processUtteranceStream = useCallback(
+    async (sid: string, utterance: string, assistantId: string) => {
+      abortRef.current = new AbortController();
+      let accumulated = "";
+      let pendingAudio: { content: string; mime: string } | null = null;
+
+      await streamVoiceUtterance(sid, utterance, {
+        signal: abortRef.current.signal,
+        onToken: (token) => {
+          accumulated += token;
+          setTurns((current) =>
+            current.map((turn) =>
+              turn.id === assistantId ? { ...turn, content: accumulated } : turn,
+            ),
+          );
+        },
+        onInterrupted: () => stopOutput(),
+        onAudio: (audio) => {
+          pendingAudio = audio;
+        },
+        onDone: (result) => {
+          setTurns((current) =>
+            current.map((turn) =>
+              turn.id === assistantId
+                ? {
+                    ...turn,
+                    content: result.answer,
+                    latency_ms: result.latency_ms,
+                    cache_hit: result.cache_hit,
+                    intent: result.intent,
+                    streaming: false,
+                    stt_latency_ms: result.stt_latency_ms,
+                    tts_latency_ms: result.tts_latency_ms,
+                  }
+                : turn,
+            ),
+          );
+          if (pendingAudio) {
+            setIsSpeaking(true);
+            void playBase64Audio(pendingAudio.content, pendingAudio.mime)
+              .catch(() => {
+                if (result.speak && result.answer) speakFallback(result.answer);
+              })
+              .finally(() => setIsSpeaking(false));
+          } else if (result.speak && result.answer) {
+            speakFallback(result.answer);
+          }
+        },
+      });
+    },
+    [speakFallback, stopOutput],
+  );
+
   const ask = useCallback(
     async (utterance: string): Promise<VoiceUtteranceResponse | null> => {
       const trimmed = utterance.trim();
@@ -117,59 +193,12 @@ export function useVoiceAgent({ patientId, consultationId }: UseVoiceAgentOption
       assistantTurnIdRef.current = assistantId;
       setTurns((current) => [
         ...current,
-        {
-          id: assistantId,
-          role: "assistant",
-          content: "",
-          streaming: true,
-        },
+        { id: assistantId, role: "assistant", content: "", streaming: true },
       ]);
 
       try {
         const sid = await ensureSession();
-        abortRef.current = new AbortController();
-
-        let accumulated = "";
-
-        await streamVoiceUtterance(sid, trimmed, {
-          signal: abortRef.current.signal,
-          onToken: (token) => {
-            accumulated += token;
-            setTurns((current) =>
-              current.map((turn) =>
-                turn.id === assistantId
-                  ? { ...turn, content: accumulated }
-                  : turn,
-              ),
-            );
-            if (accumulated.length === token.length) {
-              speak(accumulated);
-            }
-          },
-          onInterrupted: () => {
-            stopOutput();
-          },
-          onDone: (result) => {
-            setTurns((current) =>
-              current.map((turn) =>
-                turn.id === assistantId
-                  ? {
-                      ...turn,
-                      content: result.answer,
-                      latency_ms: result.latency_ms,
-                      cache_hit: result.cache_hit,
-                      intent: result.intent,
-                      streaming: false,
-                    }
-                  : turn,
-              ),
-            );
-            if (result.speak && result.answer) {
-              speak(result.answer);
-            }
-          },
-        });
-
+        await processUtteranceStream(sid, trimmed, assistantId);
         return null;
       } catch (err) {
         if ((err as Error).name !== "AbortError") {
@@ -181,8 +210,137 @@ export function useVoiceAgent({ patientId, consultationId }: UseVoiceAgentOption
         abortRef.current = null;
       }
     },
-    [ensureSession, speak, stopOutput],
+    [ensureSession, processUtteranceStream, stopOutput],
   );
+
+  const askWithAudio = useCallback(
+    async (blob: Blob, mimeType: string) => {
+      setError(null);
+      setIsThinking(true);
+
+      const assistantId = crypto.randomUUID();
+      assistantTurnIdRef.current = assistantId;
+      setTurns((current) => [
+        ...current,
+        { id: crypto.randomUUID(), role: "doctor", content: "(voice)" },
+        { id: assistantId, role: "assistant", content: "", streaming: true },
+      ]);
+
+      try {
+        const sid = await ensureSession();
+        abortRef.current = new AbortController();
+        let transcript = "";
+        let pendingAudio: { content: string; mime: string } | null = null;
+
+        await streamVoiceAudioUtterance(sid, blob, mimeType, {
+          signal: abortRef.current.signal,
+          onTranscript: (text) => {
+            transcript = text;
+            setTurns((current) =>
+              current.map((turn, index) =>
+                index === current.length - 2 && turn.role === "doctor"
+                  ? { ...turn, content: text }
+                  : turn,
+              ),
+            );
+          },
+          onToken: (token) => {
+            setTurns((current) =>
+              current.map((turn) =>
+                turn.id === assistantId
+                  ? { ...turn, content: (turn.content || "") + token }
+                  : turn,
+              ),
+            );
+          },
+          onAudio: (audio) => {
+            pendingAudio = audio;
+          },
+          onInterrupted: () => stopOutput(),
+          onDone: (result) => {
+            setTurns((current) =>
+              current.map((turn) =>
+                turn.id === assistantId
+                  ? {
+                      ...turn,
+                      content: result.answer,
+                      latency_ms: result.latency_ms,
+                      cache_hit: result.cache_hit,
+                      intent: result.intent,
+                      streaming: false,
+                      stt_latency_ms: result.stt_latency_ms,
+                      tts_latency_ms: result.tts_latency_ms,
+                    }
+                  : turn,
+              ),
+            );
+            if (pendingAudio) {
+              setIsSpeaking(true);
+              void playBase64Audio(pendingAudio.content, pendingAudio.mime)
+                .catch(() => {
+                  if (result.speak && result.answer) speakFallback(result.answer);
+                })
+                .finally(() => setIsSpeaking(false));
+            } else if (result.speak && result.answer) {
+              speakFallback(result.answer);
+            }
+          },
+          onError: (message) => setError(message),
+        });
+
+        if (!transcript) {
+          setError("Could not transcribe audio. Try again or type your question.");
+        }
+      } catch (err) {
+        if ((err as Error).name !== "AbortError") {
+          setError((err as Error).message ?? "Voice upload failed");
+        }
+      } finally {
+        setIsThinking(false);
+        abortRef.current = null;
+      }
+    },
+    [ensureSession, speakFallback, stopOutput],
+  );
+
+  const startListening = useCallback(async () => {
+    if (typeof window === "undefined" || !navigator.mediaDevices?.getUserMedia) {
+      setError("Microphone not available in this browser.");
+      return;
+    }
+    stopOutput();
+    setError(null);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+      audioChunksRef.current = [];
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) audioChunksRef.current.push(event.data);
+      };
+      recorder.onstop = () => {
+        stream.getTracks().forEach((track) => track.stop());
+        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        if (blob.size > 0) {
+          void askWithAudio(blob, "audio/webm");
+        }
+        setIsListening(false);
+      };
+      mediaRecorderRef.current = recorder;
+      recorder.start();
+      setIsListening(true);
+    } catch (err) {
+      setError((err as Error).message ?? "Microphone permission denied");
+      setIsListening(false);
+    }
+  }, [askWithAudio, stopOutput]);
+
+  const stopListening = useCallback(() => {
+    if (mediaRecorderRef.current?.state === "recording") {
+      mediaRecorderRef.current.stop();
+    } else {
+      setIsListening(false);
+    }
+  }, []);
 
   return {
     sessionId,
@@ -190,10 +348,13 @@ export function useVoiceAgent({ patientId, consultationId }: UseVoiceAgentOption
     isStarting,
     isThinking,
     isSpeaking,
+    isListening,
     briefingPreview,
     alertsPreview,
     error,
     ask,
+    startListening,
+    stopListening,
     stopOutput,
     ensureSession,
   };

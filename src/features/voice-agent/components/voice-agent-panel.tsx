@@ -115,6 +115,8 @@ export function VoiceAgentPanel({
               {turn.role === "assistant" && turn.latency_ms !== undefined ? (
                 <p className="mt-1 text-[10px] opacity-70">
                   {turn.latency_ms}ms
+                  {turn.stt_latency_ms ? ` · STT ${turn.stt_latency_ms}ms` : ""}
+                  {turn.tts_latency_ms ? ` · TTS ${turn.tts_latency_ms}ms` : ""}
                   {turn.cache_hit ? " · cached" : ""}
                   {turn.intent ? ` · ${turn.intent}` : ""}
                 </p>
@@ -147,8 +149,20 @@ export function VoiceAgentPanel({
           value={input}
           onChange={(event) => setInput(event.target.value)}
           placeholder="Ask about this patient…"
-          disabled={agent.isStarting}
+          disabled={agent.isStarting || agent.isListening}
         />
+        <Button
+          type="button"
+          size="icon"
+          variant={agent.isListening ? "destructive" : "secondary"}
+          onClick={() =>
+            agent.isListening ? agent.stopListening() : void agent.startListening()
+          }
+          disabled={agent.isStarting || agent.isThinking}
+          aria-label={agent.isListening ? "Stop recording" : "Record voice"}
+        >
+          <Mic className="h-4 w-4" />
+        </Button>
         {(agent.isThinking || agent.isSpeaking) && (
           <Button
             type="button"
@@ -175,7 +189,7 @@ export function VoiceAgentPanel({
 
       <div className="flex items-center gap-1 border-t border-border/40 px-3 py-2 text-[10px] text-muted-foreground">
         <Sparkles className="h-3 w-3" />
-        Streaming · follow-up context · safety-validated · say &quot;stop&quot; to interrupt
+        Streaming · Sarvam STT/TTS · follow-up context · say &quot;stop&quot; to interrupt
       </div>
     </div>
   );

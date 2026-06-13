@@ -33,6 +33,18 @@ export type VoiceUtteranceResponse = {
   sources_used: string[];
   retrieval_count: number;
   speak: boolean;
+  stt_latency_ms?: number;
+  tts_latency_ms?: number;
+  retrieval_latency_ms?: number;
+  llm_latency_ms?: number;
+  audio_available?: boolean;
+};
+
+export type VoicePipelineStatus = {
+  speech_to_speech_enabled: boolean;
+  stt_provider: string;
+  tts_provider: string;
+  llm_provider: string;
 };
 
 export type CacheWarmResponse = {
@@ -41,6 +53,13 @@ export type CacheWarmResponse = {
   briefing_preview?: string;
   alerts_count?: number;
 };
+
+export async function getVoicePipelineStatus(): Promise<VoicePipelineStatus> {
+  const { data } = await apiClient.get<VoicePipelineStatus>(
+    "/voice-agent/pipeline/status",
+  );
+  return data;
+}
 
 export async function warmPatientCache(
   patientId: string,
@@ -76,15 +95,77 @@ export async function interruptVoiceSession(sessionId: string): Promise<void> {
   await apiClient.post(`/voice-agent/sessions/${sessionId}/interrupt`);
 }
 
+type StreamHandlers = {
+  onToken: (token: string) => void;
+  onDone: (result: VoiceUtteranceResponse) => void;
+  onInterrupted?: () => void;
+  onTranscript?: (text: string) => void;
+  onAudio?: (audio: { content: string; mime: string }) => void;
+  onError?: (message: string) => void;
+  signal?: AbortSignal;
+};
+
+async function consumeSseStream(
+  response: Response,
+  handlers: StreamHandlers,
+): Promise<void> {
+  const reader = response.body?.getReader();
+  if (!reader) throw new Error("No response body");
+
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() ?? "";
+
+    for (const line of lines) {
+      if (!line.startsWith("data: ")) continue;
+      const payload = JSON.parse(line.slice(6)) as {
+        type: string;
+        content?: string;
+        mime?: string;
+        message?: string;
+      } & Partial<VoiceUtteranceResponse>;
+
+      switch (payload.type) {
+        case "token":
+          if (payload.content) handlers.onToken(payload.content);
+          break;
+        case "transcript":
+          if (payload.content) handlers.onTranscript?.(payload.content);
+          break;
+        case "audio":
+          if (payload.content && payload.mime) {
+            handlers.onAudio?.({ content: payload.content, mime: payload.mime });
+          }
+          break;
+        case "interrupted":
+          handlers.onInterrupted?.();
+          break;
+        case "error":
+          handlers.onError?.(payload.message ?? "Voice pipeline error");
+          break;
+        case "tts_fallback":
+          break;
+        case "done":
+          handlers.onDone(payload as VoiceUtteranceResponse);
+          break;
+        default:
+          break;
+      }
+    }
+  }
+}
+
 export async function streamVoiceUtterance(
   sessionId: string,
   utterance: string,
-  handlers: {
-    onToken: (token: string) => void;
-    onDone: (result: VoiceUtteranceResponse) => void;
-    onInterrupted?: () => void;
-    signal?: AbortSignal;
-  },
+  handlers: StreamHandlers,
 ): Promise<void> {
   const baseUrl = apiClient.defaults.baseURL ?? "";
   const token = getAccessToken();
@@ -110,32 +191,40 @@ export async function streamVoiceUtterance(
     throw new Error(`Streaming request failed (${response.status})`);
   }
 
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
+  await consumeSseStream(response, handlers);
+}
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
+export async function streamVoiceAudioUtterance(
+  sessionId: string,
+  audioBlob: Blob,
+  mimeType: string,
+  handlers: StreamHandlers,
+): Promise<void> {
+  const baseUrl = apiClient.defaults.baseURL ?? "";
+  const token = getAccessToken();
+  const form = new FormData();
+  form.append("audio", audioBlob, "utterance.webm");
+  form.append("mime_type", mimeType);
 
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split("\n");
-    buffer = lines.pop() ?? "";
+  const response = await fetch(
+    `${baseUrl}/voice-agent/sessions/${sessionId}/utterance/audio/stream`,
+    {
+      method: "POST",
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: form,
+      signal: handlers.signal,
+      credentials: "include",
+    },
+  );
 
-    for (const line of lines) {
-      if (!line.startsWith("data: ")) continue;
-      const payload = JSON.parse(line.slice(6)) as {
-        type: string;
-        content?: string;
-      } & Partial<VoiceUtteranceResponse>;
-
-      if (payload.type === "token" && payload.content) {
-        handlers.onToken(payload.content);
-      } else if (payload.type === "interrupted") {
-        handlers.onInterrupted?.();
-      } else if (payload.type === "done") {
-        handlers.onDone(payload as VoiceUtteranceResponse);
-      }
+  if (!response.ok || !response.body) {
+    if (response.status === 401) {
+      throw new Error("Voice session expired. Please refresh the page and sign in again.");
     }
+    throw new Error(`Audio streaming request failed (${response.status})`);
   }
+
+  await consumeSseStream(response, handlers);
 }
