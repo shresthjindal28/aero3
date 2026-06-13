@@ -1,5 +1,5 @@
 const LAYOUT_STYLE_PATTERN =
-  /\b(?:max-width|min-width|width|margin(?:-left|-right|-top|-bottom)?|left|right|top|bottom|transform|position)\s*:\s*[^;]+;?/gi;
+  /(?<![\w-])(?:max-width|min-width|width|margin(?:-left|-right|-top|-bottom)?|left|right|top|bottom|transform|position)\s*:\s*[^;]+;?/gi;
 
 const CENTERING_MARGIN_PATTERN =
   /\bmargin\s*:\s*(?:\d+px\s+)?auto\b[^;]*/gi;
@@ -122,8 +122,8 @@ function isLikelyOverlay(node: HTMLElement): boolean {
     opacity < 0.35 ||
     node.style.transform.includes("rotate") ||
     fontSize >= 36 ||
-    (text.includes("PRESCRIPTION") &&
-      (text.includes("KEEP") || text.includes("SAFELY")))
+    text.includes("PRESCRIPTION — KEEP") ||
+    text.includes("PRESCRIPTION - KEEP")
   );
 }
 
@@ -133,8 +133,11 @@ function isWatermarkNode(node: HTMLElement): boolean {
   const opacity = Number.parseFloat(style.opacity || "1");
   const fontSize = Number.parseFloat(style.fontSize || "0");
   const isDecorativeText =
-    text.includes("PRESCRIPTION") &&
-    (text.includes("KEEP") || text.includes("SAFELY") || text.length < 48);
+    (text.includes("KEEP SAFELY") ||
+      text.includes("KEEP SAFELY.") ||
+      text.includes("PRESCRIPTION — KEEP") ||
+      text.includes("PRESCRIPTION - KEEP")) &&
+    text.length < 64;
   const isRotatedOverlay = style.transform.includes("rotate") && opacity < 0.3;
   const isFixedOverlay = style.position === "fixed" && opacity < 0.3;
   const isAbsoluteOverlay =

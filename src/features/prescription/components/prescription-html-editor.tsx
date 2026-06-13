@@ -32,6 +32,7 @@ export function PrescriptionHtmlEditor({
   onChange,
 }: PrescriptionHtmlEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
+  const isApplyingDomRef = useRef(false);
   const sanitizedValue = useMemo(() => sanitizePrescriptionHtml(value), [value]);
   const { html, pushState, undo, redo, reset, canUndo, canRedo } =
     useHtmlEditorHistory(sanitizedValue);
@@ -46,16 +47,18 @@ export function PrescriptionHtmlEditor({
     const element = editorRef.current;
     if (!element) return;
 
+    isApplyingDomRef.current = true;
     const nextHtml = sanitizePrescriptionHtml(html);
     if (element.innerHTML !== nextHtml) {
       element.innerHTML = nextHtml;
     }
     normalizePrescriptionDocument(element);
+    isApplyingDomRef.current = false;
   }, [html]);
 
   const syncFromDom = () => {
     const element = editorRef.current;
-    if (!element || readOnly) return;
+    if (!element || readOnly || isApplyingDomRef.current) return;
     normalizePrescriptionDocument(element);
     const nextHtml = element.innerHTML;
     pushState(nextHtml);

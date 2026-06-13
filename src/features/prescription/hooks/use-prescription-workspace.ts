@@ -44,6 +44,7 @@ export function usePrescriptionWorkspace(consultationId: string) {
   const savedHtmlRef = useRef("");
   const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hydratedPrescriptionIdRef = useRef<string | null>(null);
+  const hydratedContentRef = useRef("");
 
   const prescription = prescriptionQuery.data;
   const soap = soapQuery.data;
@@ -60,6 +61,7 @@ export function usePrescriptionWorkspace(consultationId: string) {
       setHtmlDraft(nextPrescription.html_content);
       savedHtmlRef.current = nextPrescription.html_content;
       hydratedPrescriptionIdRef.current = nextPrescription.id;
+      hydratedContentRef.current = nextPrescription.html_content;
       setLastSavedAt(nextPrescription.updated_at);
       setSaveError(null);
       if (nextPrescription.is_approved) {
@@ -70,14 +72,34 @@ export function usePrescriptionWorkspace(consultationId: string) {
   );
 
   useEffect(() => {
-    if (prescription && hydratedPrescriptionIdRef.current !== prescription.id) {
+    setHtmlDraft("");
+    savedHtmlRef.current = "";
+    hydratedPrescriptionIdRef.current = null;
+    hydratedContentRef.current = "";
+    setIsRevising(false);
+    setSaveError(null);
+    setLastSavedAt(null);
+  }, [consultationId]);
+
+  useEffect(() => {
+    if (!prescription?.html_content) return;
+
+    const isNewPrescription =
+      hydratedPrescriptionIdRef.current !== prescription.id;
+    const serverContentChanged =
+      hydratedPrescriptionIdRef.current === prescription.id &&
+      hydratedContentRef.current !== prescription.html_content;
+    const hasLocalEdits = htmlDraft !== savedHtmlRef.current;
+
+    if (isNewPrescription || (serverContentChanged && !hasLocalEdits)) {
       hydrateDraft(prescription);
     }
-  }, [hydrateDraft, prescription]);
+  }, [hydrateDraft, htmlDraft, prescription]);
 
   const saveDraft = useCallback(
     async (options?: { silent?: boolean }) => {
       if (!prescription || !isDirty || isReadOnly) return;
+      if (!htmlDraft.trim() && savedHtmlRef.current.trim()) return;
       setSaveError(null);
 
       try {
@@ -101,6 +123,7 @@ export function usePrescriptionWorkspace(consultationId: string) {
 
   useEffect(() => {
     if (!isDirty || isReadOnly || !prescription) return;
+    if (!htmlDraft.trim() && prescription.html_content.trim()) return;
 
     if (autosaveTimerRef.current) {
       clearTimeout(autosaveTimerRef.current);
