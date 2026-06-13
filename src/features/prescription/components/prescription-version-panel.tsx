@@ -28,17 +28,21 @@ export function PrescriptionVersionPanel({
     );
   }
 
-  if (versions.length <= 1) {
+  if (versions.length === 0) {
     return null;
   }
 
   return (
     <div className={cn("rounded-xl border border-border/60 bg-card p-4", className)}>
-      <h3 className="text-sm font-semibold">Version history</h3>
-      <p className="mt-1 text-xs text-muted-foreground">
-        Clinical revisions are preserved for medico-legal auditability.
-      </p>
-      <ul className="mt-4 space-y-2">
+      {versions.length > 1 ? (
+        <>
+          <h3 className="text-sm font-semibold">Version history</h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Clinical revisions are preserved for medico-legal auditability.
+          </p>
+        </>
+      ) : null}
+      <ul className={cn("space-y-2", versions.length > 1 ? "mt-4" : "")}>
         {versions.map((version) => {
           const isActive = version.id === (activeVersionId ?? prescriptionId);
           return (

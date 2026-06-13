@@ -6,6 +6,7 @@ import {
   SheetContent,
   SheetOverlay,
   SheetPortal,
+  SheetTitle,
 } from "@/shared/ui/primitives/sheet";
 
 type AiAssistantDrawerProps = {
@@ -26,6 +27,7 @@ export function AiAssistantDrawer({
       <SheetPortal>
         <SheetOverlay />
         <SheetContent side="right" className="w-full max-w-md p-0">
+          <SheetTitle className="sr-only">AI Assistant</SheetTitle>
           <AiCopilotPanel
             variant="embedded"
             className="h-full rounded-none border-0"

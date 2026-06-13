@@ -13,7 +13,7 @@ export default async function PrescriptionRoutePage({
   const { consultationId } = await params;
 
   return (
-    <Suspense fallback={<PageLoader label="Loading prescription..." />}>
+    <Suspense fallback={<PageLoader label="Loading prescription..." className="h-full min-h-0" />}>
       <PrescriptionWorkspacePage consultationId={consultationId} />
     </Suspense>
   );

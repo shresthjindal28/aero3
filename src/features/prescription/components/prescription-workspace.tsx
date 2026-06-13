@@ -5,17 +5,17 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 
+import { formatChiefComplaint } from "@/lib/utils/format";
 import { useDoctorMe } from "@/features/auth/hooks/use-doctor-auth";
 import { PrescriptionCommandBar } from "@/features/prescription/components/prescription-command-bar";
 import { PrescriptionHtmlEditor } from "@/features/prescription/components/prescription-html-editor";
 import { PrescriptionSummarySidebar } from "@/features/prescription/components/prescription-summary-sidebar";
 import { usePrescriptionWorkspace } from "@/features/prescription/hooks/use-prescription-workspace";
 import { useCacheWarm } from "@/features/voice-agent/hooks/use-cache-warm";
-import { AiAssistantDrawer } from "@/features/soap/components/ai-assistant-drawer";
+import { AiAssistantPanel } from "@/features/soap/components/ai-assistant-panel";
 import { routes } from "@/shared/constants/routes";
 import { ExportService } from "@/shared/export/export.service";
 import { ApiErrorDisplay } from "@/shared/ui/feedback/api-error";
-import { ShellSkeletonLoader } from "@/shared/ui/feedback/skeleton-loader";
 import { Button } from "@/shared/ui/primitives/button";
 
 type PrescriptionWorkspaceProps = {
@@ -26,7 +26,7 @@ export function PrescriptionWorkspace({ consultationId }: PrescriptionWorkspaceP
   const workspace = usePrescriptionWorkspace(consultationId);
   useCacheWarm(workspace.patient?.id, Boolean(workspace.patient?.id));
   const { data: doctor } = useDoctorMe(Boolean(workspace.consultation));
-  const [aiOpen, setAiOpen] = useState(false);
+  const [aiExpanded, setAiExpanded] = useState(true);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -78,7 +78,14 @@ export function PrescriptionWorkspace({ consultationId }: PrescriptionWorkspaceP
   ]);
 
   if (workspace.isLoading) {
-    return <ShellSkeletonLoader />;
+    return (
+      <div className="flex h-full w-full items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Loading prescription…</p>
+        </div>
+      </div>
+    );
   }
 
   if (
@@ -100,7 +107,7 @@ export function PrescriptionWorkspace({ consultationId }: PrescriptionWorkspaceP
 
   const patient = workspace.patient;
   const consultation = workspace.consultation;
-  const consultationLabel = consultation.chief_complaint ?? "Consultation";
+  const consultationLabel = formatChiefComplaint(consultation.chief_complaint);
 
   const handleExportPdf = async () => {
     if (!workspace.prescription || !doctor) return;
@@ -144,8 +151,9 @@ export function PrescriptionWorkspace({ consultationId }: PrescriptionWorkspaceP
     workspace.isPrescriptionLoading || workspace.isGenerating || isAutoGeneratePending;
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] flex-col bg-background">
+    <div className="flex h-full w-full flex-col overflow-hidden bg-background">
       <PrescriptionCommandBar
+        consultationId={consultationId}
         patientName={patient.full_name}
         consultationLabel={consultationLabel}
         isDirty={workspace.isDirty}
@@ -165,7 +173,7 @@ export function PrescriptionWorkspace({ consultationId }: PrescriptionWorkspaceP
         onApprove={() => void workspace.approve()}
         onPrint={() => void handlePrint()}
         onExportPdf={() => void handleExportPdf()}
-        onOpenAiAssistant={() => setAiOpen(true)}
+        onOpenAiAssistant={() => setAiExpanded((current) => !current)}
       />
 
       <div className="flex min-h-0 flex-1">
@@ -178,7 +186,7 @@ export function PrescriptionWorkspace({ consultationId }: PrescriptionWorkspaceP
           onToggleCollapsed={() => setSidebarCollapsed((current) => !current)}
         />
 
-        <main className="relative flex min-h-0 min-w-0 flex-1 flex-col">
+        <section className="relative flex min-h-0 min-w-0 flex-1 flex-col">
           {workspace.soapMissing ? (
             <EmptySoapRequired consultationId={consultationId} />
           ) : workspace.soapNotApproved ? (
@@ -211,22 +219,22 @@ export function PrescriptionWorkspace({ consultationId }: PrescriptionWorkspaceP
               {workspace.saveError}
             </p>
           ) : null}
-        </main>
-      </div>
+        </section>
 
-      <AiAssistantDrawer
-        open={aiOpen}
-        onOpenChange={setAiOpen}
-        patientId={patient.id}
-        consultationId={consultationId}
-      />
+        <AiAssistantPanel
+          expanded={aiExpanded}
+          onToggle={() => setAiExpanded((current) => !current)}
+          patientId={patient.id}
+          consultationId={consultationId}
+        />
+      </div>
     </div>
   );
 }
 
 function LoadingState({ message }: { message: string }) {
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-4 bg-[#e8eaed] dark:bg-zinc-950/80">
+    <div className="flex h-full flex-col items-center justify-center gap-4 bg-muted/20">
       <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-background shadow-md">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>

@@ -68,7 +68,7 @@ export function SoapCommandBar({
   };
 
   return (
-    <header className="sticky top-0 z-20 border-b border-border/60 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+    <header className="sticky top-0 z-20 shrink-0 border-b border-border/60 bg-background shadow-sm">
       <div className="flex flex-col gap-3 px-4 py-3 lg:px-6">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">

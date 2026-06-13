@@ -39,7 +39,7 @@ export function AppHeader({
   return (
     <header
       className={cn(
-        "sticky top-0 z-40 flex h-14 items-center gap-3 border-b bg-background/80 px-4 backdrop-blur md:px-6",
+        "sticky top-0 z-40 flex h-14 items-center gap-3 overflow-hidden border-b bg-background/80 px-4 backdrop-blur md:px-6",
         className,
       )}
     >
@@ -68,20 +68,20 @@ export function AppHeader({
       </Button>
 
       {showBreadcrumbs ? (
-        <div className="hidden min-w-0 flex-1 md:block">
+        <div className="hidden min-w-0 flex-1 overflow-hidden md:block">
           <BreadcrumbNav items={breadcrumbs} />
         </div>
       ) : (
-        <div className="flex-1" />
+        <div className="min-w-0 flex-1" />
       )}
 
       <SearchBox
-        className="hidden lg:flex"
+        className="hidden shrink-0 lg:flex"
         placeholder="Search workspace… ⌘K"
         onClick={onSearchClick}
       />
 
-      <div className="ml-auto flex items-center gap-1">
+      <div className="flex shrink-0 items-center gap-1">
         <NotificationBell />
         <ThemeToggle />
         <UserMenu

@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import {
+  ArrowLeft,
   Bot,
   CheckCircle2,
   FileDown,
@@ -13,9 +15,11 @@ import {
 
 import { formatDateTime } from "@/lib/utils/date";
 import { cn } from "@/lib/utils/cn";
+import { routes } from "@/shared/constants/routes";
 import { Button } from "@/shared/ui/primitives/button";
 
 type PrescriptionCommandBarProps = {
+  consultationId: string;
   patientName: string;
   consultationLabel: string;
   isDirty: boolean;
@@ -39,6 +43,7 @@ type PrescriptionCommandBarProps = {
 };
 
 export function PrescriptionCommandBar({
+  consultationId,
   patientName,
   consultationLabel,
   isDirty,
@@ -61,121 +66,140 @@ export function PrescriptionCommandBar({
   onOpenAiAssistant,
 }: PrescriptionCommandBarProps) {
   return (
-    <header className="sticky top-0 z-20 border-b border-border/60 bg-background/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/90">
-      <div className="flex flex-col gap-3 px-4 py-3 lg:px-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex min-w-0 items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <Pill className="h-5 w-5" />
-            </div>
-            <div className="min-w-0">
-              <p className="truncate text-sm text-muted-foreground">{patientName}</p>
-              <h1 className="truncate text-xl font-semibold tracking-tight sm:text-2xl">
-                {consultationLabel}
-              </h1>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                Prescription · v{documentVersion}
-                {lastSavedAt ? ` · Saved ${formatDateTime(lastSavedAt)}` : ""}
-              </p>
-            </div>
-          </div>
+    <header className="sticky top-0 z-20 shrink-0 border-b border-border/60 bg-background shadow-sm">
+      <div className="flex flex-col gap-2 px-4 py-2.5 lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:px-6">
+        <div className="flex min-w-0 items-center gap-3">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 shrink-0"
+            asChild
+          >
+            <Link href={routes.app.consultationDetail(consultationId)} aria-label="Back">
+              <ArrowLeft className="h-4 w-4" />
+            </Link>
+          </Button>
 
-          <div className="flex flex-wrap items-center gap-2">
-            {isApproved && isRevising ? (
-              <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-600 dark:text-amber-400">
-                Revision in progress
-              </span>
-            ) : isApproved ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                Approved · permanent record
-              </span>
-            ) : isSaving ? (
-              <span className="rounded-full border border-border/60 bg-muted/50 px-3 py-1 text-xs text-muted-foreground">
-                Saving…
-              </span>
-            ) : isDirty ? (
-              <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-600 dark:text-amber-400">
-                Unsaved changes
-              </span>
-            ) : (
-              <span className="rounded-full border border-border/60 bg-muted/40 px-3 py-1 text-xs text-muted-foreground">
-                All changes saved
-              </span>
-            )}
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <Pill className="h-4 w-4" />
+          </div>
+          <div className="min-w-0">
+            <p className="truncate text-xs text-muted-foreground">{patientName}</p>
+            <h1 className="truncate text-base font-semibold tracking-tight lg:text-lg">
+              {consultationLabel}
+            </h1>
+            <p className="hidden truncate text-[11px] text-muted-foreground sm:block">
+              Prescription · v{documentVersion}
+              {lastSavedAt ? ` · Saved ${formatDateTime(lastSavedAt)}` : ""}
+            </p>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+          {isApproved && isRevising ? (
+            <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-[11px] font-medium text-amber-600 dark:text-amber-400">
+              Revision in progress
+            </span>
+          ) : isApproved ? (
+            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+              <CheckCircle2 className="h-3 w-3" />
+              Approved
+            </span>
+          ) : isSaving ? (
+            <span className="rounded-full border border-border/60 bg-muted/50 px-2.5 py-0.5 text-[11px] text-muted-foreground">
+              Saving…
+            </span>
+          ) : isDirty ? (
+            <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-[11px] font-medium text-amber-600 dark:text-amber-400">
+              Unsaved
+            </span>
+          ) : (
+            <span className="hidden rounded-full border border-border/60 bg-muted/40 px-2.5 py-0.5 text-[11px] text-muted-foreground xl:inline">
+              Saved
+            </span>
+          )}
+
           {!hasPrescription ? (
-            <Button
-              type="button"
-              size="sm"
-              onClick={onGenerate}
-              disabled={isGenerating || soapMissing}
-            >
-              <Sparkles className="h-4 w-4" />
-              {isGenerating ? "Generating…" : "Generate Prescription"}
-            </Button>
+            <>
+              <Button
+                type="button"
+                size="sm"
+                onClick={onGenerate}
+                disabled={isGenerating || soapMissing}
+              >
+                <Sparkles className="h-4 w-4" />
+                {isGenerating ? "Generating…" : "Generate"}
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={onOpenAiAssistant}
+              >
+                <Bot className="h-4 w-4" />
+                <span className="hidden sm:inline">AI Assistant</span>
+              </Button>
+            </>
           ) : (
             <>
-              <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-border/50 bg-muted/20 p-1">
+              <div className="flex flex-wrap items-center gap-1 rounded-lg border border-border/50 bg-muted/20 p-0.5">
                 <Button
                   type="button"
                   size="sm"
                   variant="ghost"
-                  className="h-8"
+                  className="h-8 px-2.5"
                   onClick={onRegenerate}
                   disabled={isGenerating || soapMissing}
                 >
                   <RefreshCw
                     className={cn("h-4 w-4", isGenerating && "animate-spin")}
                   />
-                  Regenerate
+                  <span className="hidden xl:inline">Regenerate</span>
                 </Button>
                 {isApproved && !isRevising ? (
                   <Button
                     type="button"
                     size="sm"
                     variant="ghost"
-                    className="h-8"
+                    className="h-8 px-2.5"
                     onClick={onStartRevision}
                   >
                     <Save className="h-4 w-4" />
-                    Revise
+                    <span className="hidden xl:inline">Revise</span>
                   </Button>
                 ) : (
                   <Button
                     type="button"
                     size="sm"
                     variant="ghost"
-                    className="h-8"
+                    className="h-8 px-2.5"
                     onClick={onSave}
                     disabled={!isDirty || isSaving}
                   >
                     <Save className="h-4 w-4" />
-                    Save
+                    <span className="hidden xl:inline">Save</span>
                   </Button>
                 )}
                 <Button
                   type="button"
                   size="sm"
                   variant="ghost"
-                  className="h-8"
+                  className="h-8 px-2.5"
                   onClick={onPrint}
                 >
                   <Printer className="h-4 w-4" />
-                  Print
+                  <span className="hidden xl:inline">Print</span>
                 </Button>
                 <Button
                   type="button"
                   size="sm"
                   variant="ghost"
-                  className="h-8"
+                  className="h-8 px-2.5"
                   onClick={onExportPdf}
                 >
                   <FileDown className="h-4 w-4" />
-                  Export PDF
+                  <span className="hidden xl:inline">PDF</span>
                 </Button>
               </div>
 
@@ -184,24 +208,22 @@ export function PrescriptionCommandBar({
                 size="sm"
                 onClick={onApprove}
                 disabled={isApproving || isApproved}
-                className="ml-auto sm:ml-0"
               >
                 <CheckCircle2 className="h-4 w-4" />
-                {isApproving ? "Approving…" : isApproved ? "Approved" : "Approve Prescription"}
+                {isApproving ? "Approving…" : isApproved ? "Approved" : "Approve"}
+              </Button>
+
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={onOpenAiAssistant}
+              >
+                <Bot className="h-4 w-4" />
+                <span className="hidden sm:inline">AI</span>
               </Button>
             </>
           )}
-
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            className={cn(!hasPrescription && "ml-auto")}
-            onClick={onOpenAiAssistant}
-          >
-            <Bot className="h-4 w-4" />
-            <span className="hidden sm:inline">AI Assistant</span>
-          </Button>
         </div>
       </div>
     </header>

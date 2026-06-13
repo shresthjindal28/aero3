@@ -9,5 +9,9 @@ type PrescriptionWorkspacePageProps = {
 export function PrescriptionWorkspacePage({
   consultationId,
 }: PrescriptionWorkspacePageProps) {
-  return <PrescriptionWorkspace consultationId={consultationId} />;
+  return (
+    <div className="h-full w-full min-w-0">
+      <PrescriptionWorkspace consultationId={consultationId} />
+    </div>
+  );
 }

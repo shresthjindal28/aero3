@@ -1,4 +1,12 @@
 import { apiClient } from "@/lib/api/client";
+import { useTokenStore } from "@/features/auth/store/token.store";
+import { readStoredSession } from "@/features/auth/utils/token-storage";
+
+function getAccessToken(): string | null {
+  return (
+    useTokenStore.getState().accessToken ?? readStoredSession().accessToken
+  );
+}
 
 export type VoiceSessionStartInput = {
   patient_id: string;
@@ -79,9 +87,7 @@ export async function streamVoiceUtterance(
   },
 ): Promise<void> {
   const baseUrl = apiClient.defaults.baseURL ?? "";
-  const token = typeof window !== "undefined"
-    ? localStorage.getItem("access_token")
-    : null;
+  const token = getAccessToken();
 
   const response = await fetch(
     `${baseUrl}/voice-agent/sessions/${sessionId}/utterance/stream`,
@@ -93,11 +99,15 @@ export async function streamVoiceUtterance(
       },
       body: JSON.stringify({ utterance }),
       signal: handlers.signal,
+      credentials: "include",
     },
   );
 
   if (!response.ok || !response.body) {
-    throw new Error("Streaming request failed");
+    if (response.status === 401) {
+      throw new Error("Voice session expired. Please refresh the page and sign in again.");
+    }
+    throw new Error(`Streaming request failed (${response.status})`);
   }
 
   const reader = response.body.getReader();

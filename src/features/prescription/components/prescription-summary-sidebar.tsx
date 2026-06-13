@@ -5,6 +5,7 @@ import Link from "next/link";
 import { PrescriptionVersionPanel } from "@/features/prescription/components/prescription-version-panel";
 import { ChevronLeft, ChevronRight, FileText } from "lucide-react";
 
+import { formatChiefComplaint } from "@/lib/utils/format";
 import type { Consultation } from "@/features/consultations/types/consultation.types";
 import type { Patient } from "@/features/patients/types/patient.types";
 import {
@@ -89,7 +90,9 @@ export function PrescriptionSummarySidebar({
             Chief complaint
           </p>
           <p className="text-sm leading-relaxed">
-            {consultation.chief_complaint ?? "—"}
+            {consultation.chief_complaint
+              ? formatChiefComplaint(consultation.chief_complaint)
+              : "—"}
           </p>
         </div>
 
