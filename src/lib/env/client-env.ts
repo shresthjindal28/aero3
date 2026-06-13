@@ -28,11 +28,16 @@ function resolveClientEnv() {
     process.env.NEXT_PHASE === "phase-production-build" ||
     process.env.NEXT_PHASE === "phase-export";
 
-  if (isBuildPhase) {
-    console.warn(
-      "Missing client environment variables during build; using fallbacks. Configure NEXT_PUBLIC_* in Vercel project settings.",
-      parsed.error.flatten().fieldErrors,
-    );
+  const missingRequired =
+    !raw.NEXT_PUBLIC_API_BASE_URL || !raw.NEXT_PUBLIC_WS_BASE_URL;
+
+  if (isBuildPhase || missingRequired) {
+    if (typeof window !== "undefined" || isBuildPhase) {
+      console.warn(
+        "Missing client environment variables; using fallbacks. Set NEXT_PUBLIC_* in Vercel project settings and redeploy.",
+        parsed.error.flatten().fieldErrors,
+      );
+    }
     return clientEnvSchema.parse(BUILD_FALLBACKS);
   }
 
