@@ -5,11 +5,7 @@ import { useRouter } from "next/navigation";
 import { LogOut, Shield, User } from "lucide-react";
 
 import { routes } from "@/shared/constants/routes";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/shared/ui/primitives/avatar";
+import { StorageAvatar } from "@/shared/ui/primitives/storage-avatar";
 import { Button } from "@/shared/ui/primitives/button";
 import {
   DropdownMenu,
@@ -27,15 +23,6 @@ type UserMenuProps = {
   actorType: "doctor" | "admin";
   onLogout: () => void;
 };
-
-function getInitials(name: string): string {
-  return name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-}
 
 export function UserMenu({
   name,
@@ -64,10 +51,7 @@ export function UserMenu({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="h-9 gap-2 px-2">
-          <Avatar className="h-7 w-7">
-            {avatarUrl ? <AvatarImage src={avatarUrl} alt={name} /> : null}
-            <AvatarFallback>{getInitials(name)}</AvatarFallback>
-          </Avatar>
+          <StorageAvatar name={name} imageRef={avatarUrl} className="h-7 w-7" />
           <span className="hidden text-sm font-medium md:inline">{name}</span>
         </Button>
       </DropdownMenuTrigger>

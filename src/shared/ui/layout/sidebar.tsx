@@ -2,11 +2,7 @@
 
 import type { NavItem } from "@/config/navigation.config";
 import { cn } from "@/lib/utils/cn";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/shared/ui/primitives/avatar";
+import { StorageAvatar } from "@/shared/ui/primitives/storage-avatar";
 import { SidebarFooterNav, SidebarNav } from "@/shared/ui/layout/sidebar-nav";
 
 type SidebarUser = {
@@ -25,15 +21,6 @@ type SidebarProps = {
   className?: string;
   onNavigate?: () => void;
 };
-
-function getInitials(name: string): string {
-  return name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-}
 
 export function Sidebar({
   brand,
@@ -56,12 +43,7 @@ export function Sidebar({
       <div className={cn("shrink-0 border-b px-4 py-5", collapsed && "px-3")}>
         {user ? (
           <div className="flex items-center gap-3">
-            <Avatar className="h-9 w-9 shrink-0">
-              {user.avatarUrl ? (
-                <AvatarImage src={user.avatarUrl} alt={user.name} />
-              ) : null}
-              <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
-            </Avatar>
+            <StorageAvatar name={user.name} imageRef={user.avatarUrl} />
             {!collapsed ? (
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold tracking-tight">

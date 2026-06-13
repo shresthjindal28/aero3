@@ -65,4 +65,8 @@ export const queryKeys = {
       ["ai-jobs", "consultation", consultationId] as const,
     detail: (id: string) => ["ai-jobs", id] as const,
   },
+  storage: {
+    downloadUrl: (objectKey: string) =>
+      ["storage", "download-url", objectKey] as const,
+  },
 } as const;
