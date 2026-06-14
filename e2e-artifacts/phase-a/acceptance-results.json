@@ -1,0 +1,29 @@
+{
+  "timestamp": "2026-06-14T14:53:11.212Z",
+  "metrics": [
+    {
+      "route": "full-session",
+      "durationMs": 8979,
+      "apiCalls": 15,
+      "duplicateApiCalls": 2,
+      "slowRequests": []
+    }
+  ],
+  "checklist": {
+    "No checking account status": "pass",
+    "Dashboard cards clickable": "pass",
+    "Resume visit opens session": "skip",
+    "Consultation filters work": "pass",
+    "Clinical language - Visits nav": "pass",
+    "Clinical language - Active visits nav": "pass",
+    "Settings - no security link": "pass",
+    "Settings - no fake sessions": "pass",
+    "Command palette clinical copy": "pass",
+    "No full-page blockers observed": "pass"
+  },
+  "timings": {
+    "Login → Dashboard": 7871,
+    "Dashboard → Patient": 834,
+    "Patient search": 274
+  }
+}

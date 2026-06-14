@@ -38,6 +38,7 @@ export const routes = {
     },
     sessions: "/sessions",
     sessionDetail: (sessionId: string) => `/sessions/${sessionId}`,
+    consultationsWithFilter: (filter: string) => `/consultations?filter=${filter}`,
     memory: "/memory",
     documents: "/documents",
     settings: "/settings",

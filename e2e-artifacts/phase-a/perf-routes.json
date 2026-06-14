@@ -1,0 +1,29 @@
+[
+  {
+    "route": "Dashboard",
+    "path": "/dashboard",
+    "ttfbMs": 355,
+    "domContentLoadedMs": 416,
+    "loadMs": 515,
+    "apiCalls": 0,
+    "transferBytes": 0
+  },
+  {
+    "route": "Patients",
+    "path": "/patients",
+    "ttfbMs": 704,
+    "domContentLoadedMs": 806,
+    "loadMs": 857,
+    "apiCalls": 0,
+    "transferBytes": 0
+  },
+  {
+    "route": "Consultations",
+    "path": "/consultations",
+    "ttfbMs": 387,
+    "domContentLoadedMs": 529,
+    "loadMs": 588,
+    "apiCalls": 0,
+    "transferBytes": 0
+  }
+]

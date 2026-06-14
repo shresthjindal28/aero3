@@ -6,7 +6,7 @@ import { PatientWorkspace } from "@/features/patients/components/patient-workspa
 import { usePatient } from "@/features/patients/hooks/use-patient";
 import { useCacheWarm } from "@/features/voice-agent/hooks/use-cache-warm";
 import { ApiErrorDisplay } from "@/shared/ui/feedback/api-error";
-import { PageLoader } from "@/shared/ui/feedback/page-loader";
+import { PatientDetailSkeleton } from "@/shared/ui/feedback/clinical-skeletons";
 import { PageContainer } from "@/shared/ui/layout/page-container";
 
 export function PatientDetailPage() {
@@ -15,8 +15,12 @@ export function PatientDetailPage() {
   const { data: patient, isLoading, isError, error, refetch } = usePatient(patientId);
   useCacheWarm(patientId, Boolean(patientId));
 
-  if (isLoading) {
-    return <PageLoader label="Loading patient..." />;
+  if (isLoading && !patient) {
+    return (
+      <PageContainer>
+        <PatientDetailSkeleton />
+      </PageContainer>
+    );
   }
 
   if (isError || !patient) {

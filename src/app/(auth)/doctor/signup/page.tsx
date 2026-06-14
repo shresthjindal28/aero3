@@ -5,8 +5,8 @@ import { routes } from "@/shared/constants/routes";
 export default function DoctorSignupPage() {
   return (
     <AuthLayout
-      title="Create your doctor account"
-      description="Join AIRO to streamline your clinical documentation workflow."
+      title="Create your account"
+      description="A few details to get started — you'll finish your profile during onboarding."
       alternateLink={{
         label: "Already have an account?",
         href: routes.auth.doctorLogin,

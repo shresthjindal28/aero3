@@ -25,7 +25,7 @@ export function useStartSession(consultationId: string) {
       await queryClient.invalidateQueries({
         queryKey: queryKeys.sessions.byConsultation(consultationId),
       });
-      toast.success("Live session started");
+      toast.success("Visit recording started");
       router.push(routes.app.sessionDetail(session.id));
     },
     onError: async (error: ApiError) => {
@@ -36,7 +36,7 @@ export function useStartSession(consultationId: string) {
             (session) => session.status === "active" || session.status === "paused",
           );
           if (active) {
-            toast.info("Resuming existing live session");
+            toast.info("Continuing your visit");
             router.push(routes.app.sessionDetail(active.id));
             return;
           }
@@ -44,7 +44,7 @@ export function useStartSession(consultationId: string) {
           // Fall through to default error toast.
         }
       }
-      toast.error(error.message ?? "Unable to start session");
+      toast.error(error.message ?? "Unable to begin visit");
     },
   });
 }

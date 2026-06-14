@@ -20,7 +20,7 @@ export function usePatientsList() {
   const [page, setPage] = useState(1);
   const [sortField, setSortField] = useState<PatientSortField>("created_at");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
-  const debouncedSearch = useDebouncedValue(search, 300);
+  const debouncedSearch = useDebouncedValue(search, 150);
 
   const query = useQuery({
     ...patientQueries.list(),

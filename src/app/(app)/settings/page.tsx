@@ -9,7 +9,7 @@ export default function DoctorSettingsPage() {
     <PageContainer>
       <PageHeader
         title="Settings"
-        description="Manage your profile, security, and workspace preferences."
+        description="View your profile and practice details."
       />
       <div className="mt-8 grid gap-3 md:max-w-md">
         <Link
@@ -17,12 +17,6 @@ export default function DoctorSettingsPage() {
           className="rounded-lg border bg-card px-4 py-3 text-sm transition-colors hover:bg-accent"
         >
           Profile
-        </Link>
-        <Link
-          href={routes.app.settingsSecurity}
-          className="rounded-lg border bg-card px-4 py-3 text-sm transition-colors hover:bg-accent"
-        >
-          Security
         </Link>
       </div>
     </PageContainer>

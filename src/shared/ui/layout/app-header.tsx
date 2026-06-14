@@ -23,6 +23,8 @@ type AppHeaderProps = {
   onLogout: () => void;
   onSearchClick?: () => void;
   showBreadcrumbs?: boolean;
+  showThemeToggle?: boolean;
+  searchPlaceholder?: string;
   className?: string;
 };
 
@@ -32,6 +34,8 @@ export function AppHeader({
   onLogout,
   onSearchClick,
   showBreadcrumbs = true,
+  showThemeToggle = true,
+  searchPlaceholder = "Find patient or visit… ⌘K",
   className,
 }: AppHeaderProps) {
   const { sidebarCollapsed, toggleSidebar, setMobileSidebarOpen } = useShellStore();
@@ -77,13 +81,13 @@ export function AppHeader({
 
       <SearchBox
         className="hidden shrink-0 lg:flex"
-        placeholder="Search workspace… ⌘K"
+        placeholder={searchPlaceholder}
         onClick={onSearchClick}
       />
 
       <div className="flex shrink-0 items-center gap-1">
         <NotificationBell />
-        <ThemeToggle />
+        {showThemeToggle ? <ThemeToggle /> : null}
         <UserMenu
           name={user.name}
           email={user.email}

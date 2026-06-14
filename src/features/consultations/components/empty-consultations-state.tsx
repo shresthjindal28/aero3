@@ -14,15 +14,15 @@ export function EmptyConsultationsState({ patientId }: EmptyConsultationsStatePr
       <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
         <Stethoscope className="h-5 w-5 text-muted-foreground" />
       </div>
-      <h3 className="text-base font-medium">No consultations yet</h3>
+      <h3 className="text-base font-medium">No visits yet</h3>
       <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-        Start a consultation to document chief complaints and move into sessions,
-        transcripts, and clinical notes.
+        Start a visit to document the chief complaint, record the encounter, and draft
+        clinical notes.
       </p>
       {patientId ? (
         <Button asChild className="mt-6">
           <Link href={routes.app.patientConsultationNew(patientId)}>
-            Start new consultation
+            Start a visit
           </Link>
         </Button>
       ) : null}

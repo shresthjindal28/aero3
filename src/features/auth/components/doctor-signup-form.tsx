@@ -4,6 +4,9 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { doctorLogin } from "@/features/auth/api/doctor-auth.api";
+import { AuthFormField } from "@/features/auth/components/auth-form-field";
+import { AuthInput } from "@/features/auth/components/auth-input";
+import { AuthSubmitButton } from "@/features/auth/components/auth-submit-button";
 import { useDoctorSignup } from "@/features/auth/hooks/use-doctor-auth";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useTokenStore } from "@/features/auth/store/token.store";
@@ -13,11 +16,7 @@ import {
   type DoctorSignupFormValues,
 } from "@/features/auth/schemas/signup.schema";
 import type { ApiError } from "@/lib/api/types/api-error.types";
-import { FormField } from "@/shared/forms/form-field";
-import { FormSection } from "@/shared/forms/form-section";
 import { useZodForm } from "@/shared/forms/use-zod-form";
-import { LoadingButton } from "@/shared/ui/buttons/loading-button";
-import { Input } from "@/shared/ui/primitives/input";
 
 export function DoctorSignupForm() {
   const router = useRouter();
@@ -62,43 +61,63 @@ export function DoctorSignupForm() {
 
   return (
     <form onSubmit={onSubmit} className="space-y-6">
-      <FormSection
-        title="Account"
-        description="Create your account. All professional details are collected during onboarding."
-      >
+      <div className="space-y-5">
+        <div className="space-y-1">
+          <h3 className="text-sm font-medium text-stone-800 dark:text-stone-200">
+            Your details
+          </h3>
+          <p className="text-xs leading-relaxed text-stone-500 dark:text-stone-400">
+            License and clinic info comes later, during onboarding.
+          </p>
+        </div>
+
         <div className="space-y-4">
-          <FormField
+          <AuthFormField
             control={form.control}
             name="full_name"
             label="Full name"
-            render={({ field }) => <Input autoComplete="name" {...field} />}
+            render={({ field, id }) => (
+              <AuthInput autoComplete="name" placeholder="Dr. Jane Smith" id={id} {...field} />
+            )}
           />
-          <FormField
+          <AuthFormField
             control={form.control}
             name="email"
-            label="Email"
-            render={({ field }) => <Input type="email" autoComplete="email" {...field} />}
+            label="Work email"
+            render={({ field, id }) => (
+              <AuthInput
+                type="email"
+                autoComplete="email"
+                placeholder="you@clinic.com"
+                id={id}
+                {...field}
+              />
+            )}
           />
-          <FormField
+          <AuthFormField
             control={form.control}
             name="password"
             label="Password"
             description="Minimum 8 characters"
-            render={({ field }) => (
-              <Input type="password" autoComplete="new-password" {...field} />
+            render={({ field, id }) => (
+              <AuthInput
+                type="password"
+                autoComplete="new-password"
+                placeholder="Create a secure password"
+                id={id}
+                {...field}
+              />
             )}
           />
         </div>
-      </FormSection>
+      </div>
 
-      <LoadingButton
-        type="submit"
-        className="w-full"
+      <AuthSubmitButton
         loading={signupMutation.isPending}
-        loadingText="Creating account..."
+        loadingText="Creating account…"
       >
         Create account
-      </LoadingButton>
+      </AuthSubmitButton>
     </form>
   );
 }

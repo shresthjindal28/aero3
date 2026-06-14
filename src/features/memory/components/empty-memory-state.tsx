@@ -15,7 +15,7 @@ export function EmptyMemoryState({ patientId, patientName }: EmptyMemoryStatePro
       <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
         <Brain className="h-5 w-5 text-muted-foreground" />
       </div>
-      <h3 className="text-base font-medium">No clinical memory yet</h3>
+      <h3 className="text-base font-medium">No chart summary yet</h3>
       <p className="mt-2 max-w-md text-sm text-muted-foreground">
         {patientName
           ? `AIRO has not recorded any memory for ${patientName} yet.`

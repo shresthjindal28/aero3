@@ -9,13 +9,12 @@ export default function MemoryIndexPage() {
   return (
     <PageContainer>
       <PageHeader
-        title="Memory"
-        description="Patient memory is available from each patient's workspace"
+        title="Chart summary"
+        description="Open a patient chart to view their clinical summary."
       />
       <div className="mt-8 rounded-xl border border-dashed border-border/60 p-8 text-center">
         <p className="text-sm text-muted-foreground">
-          Open a patient record to explore AIRO&apos;s memory profile, documents, and
-          vector search.
+          Open a patient record to review their chart summary and clinical context.
         </p>
         <Button type="button" className="mt-4" asChild>
           <Link href={routes.app.patients}>Go to patients</Link>

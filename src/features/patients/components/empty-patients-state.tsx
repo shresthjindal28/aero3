@@ -20,7 +20,7 @@ export function EmptyPatientsState({ hasSearch = false }: EmptyPatientsStateProp
       <p className="mt-2 max-w-sm text-sm text-muted-foreground">
         {hasSearch
           ? "Try a different name, phone number, or blood group."
-          : "Add your first patient to begin consultations, sessions, and clinical memory."}
+          : "Add your first patient to begin visits and clinical notes."}
       </p>
       {!hasSearch ? (
         <Button asChild className="mt-6">

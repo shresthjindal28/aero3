@@ -146,7 +146,7 @@ export function SessionWorkspace({ sessionId }: SessionWorkspaceProps) {
                     router.push(routes.app.consultationSoap(consultationId))
                   }
                 >
-                  Open SOAP workspace
+                  Open note
                 </Button>
                 {workspace.transcriptSegmentCount === 0 ? (
                   <p className="text-xs text-muted-foreground">

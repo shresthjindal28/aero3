@@ -3,6 +3,9 @@
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
+import { AuthFormField } from "@/features/auth/components/auth-form-field";
+import { AuthInput } from "@/features/auth/components/auth-input";
+import { AuthSubmitButton } from "@/features/auth/components/auth-submit-button";
 import { useAdminSignup } from "@/features/auth/hooks/use-admin-auth";
 import {
   adminSignupSchema,
@@ -10,10 +13,7 @@ import {
 } from "@/features/auth/schemas/signup.schema";
 import type { ApiError } from "@/lib/api/types/api-error.types";
 import { routes } from "@/shared/constants/routes";
-import { FormField } from "@/shared/forms/form-field";
 import { useZodForm } from "@/shared/forms/use-zod-form";
-import { LoadingButton } from "@/shared/ui/buttons/loading-button";
-import { Input } from "@/shared/ui/primitives/input";
 
 export function AdminSignupForm() {
   const router = useRouter();
@@ -43,36 +43,44 @@ export function AdminSignupForm() {
   });
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
-      <FormField
+    <form onSubmit={onSubmit} className="space-y-5">
+      <AuthFormField
         control={form.control}
         name="full_name"
         label="Full name"
-        render={({ field }) => <Input autoComplete="name" {...field} />}
+        render={({ field, id }) => (
+          <AuthInput autoComplete="name" placeholder="Operations lead" id={id} {...field} />
+        )}
       />
-      <FormField
+      <AuthFormField
         control={form.control}
         name="email"
-        label="Email"
-        render={({ field }) => <Input type="email" autoComplete="email" {...field} />}
+        label="Work email"
+        render={({ field, id }) => (
+          <AuthInput type="email" autoComplete="email" placeholder="admin@airo.com" id={id} {...field} />
+        )}
       />
-      <FormField
+      <AuthFormField
         control={form.control}
         name="password"
         label="Password"
         description="Minimum 8 characters"
-        render={({ field }) => (
-          <Input type="password" autoComplete="new-password" {...field} />
+        render={({ field, id }) => (
+          <AuthInput
+            type="password"
+            autoComplete="new-password"
+            placeholder="Create a secure password"
+            id={id}
+            {...field}
+          />
         )}
       />
-      <LoadingButton
-        type="submit"
-        className="w-full"
+      <AuthSubmitButton
         loading={signupMutation.isPending}
         loadingText="Creating account..."
       >
         Create admin account
-      </LoadingButton>
+      </AuthSubmitButton>
     </form>
   );
 }

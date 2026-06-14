@@ -3,6 +3,9 @@
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
+import { AuthFormField } from "@/features/auth/components/auth-form-field";
+import { AuthInput } from "@/features/auth/components/auth-input";
+import { AuthSubmitButton } from "@/features/auth/components/auth-submit-button";
 import {
   getAdminPostLoginRoute,
   useAdminLogin,
@@ -12,10 +15,7 @@ import {
   type LoginFormValues,
 } from "@/features/auth/schemas/login.schema";
 import type { ApiError } from "@/lib/api/types/api-error.types";
-import { FormField } from "@/shared/forms/form-field";
 import { useZodForm } from "@/shared/forms/use-zod-form";
-import { LoadingButton } from "@/shared/ui/buttons/loading-button";
-import { Input } from "@/shared/ui/primitives/input";
 
 export function AdminLoginForm() {
   const router = useRouter();
@@ -36,29 +36,32 @@ export function AdminLoginForm() {
   });
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
-      <FormField
+    <form onSubmit={onSubmit} className="space-y-5">
+      <AuthFormField
         control={form.control}
         name="email"
-        label="Email"
-        render={({ field }) => <Input type="email" autoComplete="email" {...field} />}
+        label="Admin email"
+        render={({ field, id }) => (
+          <AuthInput type="email" autoComplete="email" placeholder="admin@airo.com" id={id} {...field} />
+        )}
       />
-      <FormField
+      <AuthFormField
         control={form.control}
         name="password"
         label="Password"
-        render={({ field }) => (
-          <Input type="password" autoComplete="current-password" {...field} />
+        render={({ field, id }) => (
+          <AuthInput
+            type="password"
+            autoComplete="current-password"
+            placeholder="Enter your password"
+            id={id}
+            {...field}
+          />
         )}
       />
-      <LoadingButton
-        type="submit"
-        className="w-full"
-        loading={loginMutation.isPending}
-        loadingText="Signing in..."
-      >
-        Sign in
-      </LoadingButton>
+      <AuthSubmitButton loading={loginMutation.isPending} loadingText="Signing in...">
+        Sign in to admin console
+      </AuthSubmitButton>
     </form>
   );
 }

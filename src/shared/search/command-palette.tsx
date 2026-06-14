@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import {
   Brain,
   FileText,
@@ -11,8 +12,8 @@ import {
   Users,
 } from "lucide-react";
 
-import { listConsultations } from "@/features/consultations/api/consultations.api";
-import { listPatients } from "@/features/patients/api/patients.api";
+import { consultationQueries } from "@/features/consultations/queries/consultation-queries";
+import { patientQueries } from "@/features/patients/queries/patient-queries";
 import { routes } from "@/shared/constants/routes";
 import { useDebouncedValue } from "@/shared/hooks/use-debounced-value";
 import { cn } from "@/lib/utils/cn";
@@ -43,87 +44,88 @@ const typeIcons = {
 export function CommandPalette({ open, onClose }: CommandPaletteProps) {
   const router = useRouter();
   const [query, setQuery] = useState("");
-  const debouncedQuery = useDebouncedValue(query, 200);
-  const [results, setResults] = useState<SearchResult[]>([]);
+  const debouncedQuery = useDebouncedValue(query, 150);
   const [activeIndex, setActiveIndex] = useState(0);
+
+  const patientsQuery = useQuery({
+    ...patientQueries.list(),
+    enabled: open,
+    staleTime: 3 * 60_000,
+  });
+
+  const consultationsQuery = useQuery({
+    ...consultationQueries.list(),
+    enabled: open,
+    staleTime: 3 * 60_000,
+  });
 
   useEffect(() => {
     if (!open) {
       setQuery("");
-      setResults([]);
       setActiveIndex(0);
     }
   }, [open]);
 
-  useEffect(() => {
-    if (!debouncedQuery.trim()) {
-      setResults([]);
-      return;
-    }
-
+  const visibleResults = useMemo(() => {
     const q = debouncedQuery.trim().toLowerCase();
+    if (!q) return [];
 
-    void (async () => {
-      const [patients, consultations] = await Promise.all([
-        listPatients(),
-        listConsultations(),
-      ]);
+    const patients = patientsQuery.data ?? [];
+    const consultations = consultationsQuery.data ?? [];
 
-      const patientResults: SearchResult[] = patients
-        .filter((p) => p.full_name.toLowerCase().includes(q))
-        .slice(0, 5)
-        .map((p) => ({
-          id: p.id,
-          label: p.full_name,
-          subtitle: "Patient",
-          href: routes.app.patientDetail(p.id),
-          type: "patient",
-        }));
+    const patientResults: SearchResult[] = patients
+      .filter((patient) => patient.full_name.toLowerCase().includes(q))
+      .slice(0, 5)
+      .map((patient) => ({
+        id: patient.id,
+        label: patient.full_name,
+        subtitle: "Patient",
+        href: routes.app.patientDetail(patient.id),
+        type: "patient",
+      }));
 
-      const consultationResults: SearchResult[] = consultations
-        .filter((c) => (c.chief_complaint ?? "").toLowerCase().includes(q))
-        .slice(0, 5)
-        .map((c) => ({
-          id: c.id,
-          label: c.chief_complaint ?? "Consultation",
-          subtitle: "Consultation",
-          href: routes.app.consultationDetail(c.id),
-          type: "consultation",
-        }));
+    const consultationResults: SearchResult[] = consultations
+      .filter((consultation) => (consultation.chief_complaint ?? "").toLowerCase().includes(q))
+      .slice(0, 5)
+      .map((consultation) => ({
+        id: consultation.id,
+        label: consultation.chief_complaint ?? "Visit",
+        subtitle: "Visit",
+        href: routes.app.consultationDetail(consultation.id),
+        type: "consultation",
+      }));
 
-      const soapResults: SearchResult[] = consultations
-        .filter((c) => (c.chief_complaint ?? "").toLowerCase().includes(q))
-        .slice(0, 3)
-        .map((c) => ({
-          id: `${c.id}-soap`,
-          label: `SOAP — ${c.chief_complaint ?? "Consultation"}`,
-          subtitle: "SOAP Note",
-          href: routes.app.consultationSoap(c.id),
-          type: "soap",
-        }));
+    const soapResults: SearchResult[] = consultations
+      .filter((consultation) => (consultation.chief_complaint ?? "").toLowerCase().includes(q))
+      .slice(0, 3)
+      .map((consultation) => ({
+        id: `${consultation.id}-soap`,
+        label: `Note — ${consultation.chief_complaint ?? "Visit"}`,
+        subtitle: "Clinical note",
+        href: routes.app.consultationSoap(consultation.id),
+        type: "soap",
+      }));
 
-      const memoryResults: SearchResult[] = patients
-        .filter((p) => p.full_name.toLowerCase().includes(q))
-        .slice(0, 3)
-        .map((p) => ({
-          id: `${p.id}-memory`,
-          label: `Memory — ${p.full_name}`,
-          subtitle: "Patient memory",
-          href: routes.app.patientMemory(p.id),
-          type: "memory",
-        }));
+    const memoryResults: SearchResult[] = patients
+      .filter((patient) => patient.full_name.toLowerCase().includes(q))
+      .slice(0, 3)
+      .map((patient) => ({
+        id: `${patient.id}-memory`,
+        label: `Chart summary — ${patient.full_name}`,
+        subtitle: "Patient chart",
+        href: routes.app.patientMemory(patient.id),
+        type: "memory",
+      }));
 
-      setResults([
-        ...patientResults,
-        ...consultationResults,
-        ...soapResults,
-        ...memoryResults,
-      ]);
-      setActiveIndex(0);
-    })();
+    return [...patientResults, ...consultationResults, ...soapResults, ...memoryResults].slice(
+      0,
+      12,
+    );
+  }, [consultationsQuery.data, debouncedQuery, patientsQuery.data]);
+
+  useEffect(() => {
+    setActiveIndex(0);
   }, [debouncedQuery]);
-
-  const visibleResults = useMemo(() => results.slice(0, 12), [results]);
 
   useEffect(() => {
     if (!open) return;
@@ -162,7 +164,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
       className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4 pt-[15vh]"
       role="dialog"
       aria-modal="true"
-      aria-label="Command palette"
+      aria-label="Patient and visit search"
       onClick={onClose}
     >
       <div
@@ -175,16 +177,16 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
             autoFocus
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search patients, consultations, SOAP, memory…"
+            placeholder="Find a patient or visit…"
             className="border-0 bg-transparent pl-11 shadow-none focus-visible:ring-0"
-            aria-label="Global search"
+            aria-label="Search patients and visits"
           />
         </div>
 
         <ul className="max-h-80 overflow-y-auto p-2" role="listbox">
           {visibleResults.length === 0 ? (
             <li className="px-3 py-6 text-center text-sm text-muted-foreground">
-              {query ? "No results" : "Type to search the workspace"}
+              {query ? "No results" : "Type a patient name or visit reason"}
             </li>
           ) : (
             visibleResults.map((result, index) => {
@@ -208,9 +210,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
                     <div>
                       <p className="font-medium">{result.label}</p>
                       {result.subtitle ? (
-                        <p className="text-xs text-muted-foreground">
-                          {result.subtitle}
-                        </p>
+                        <p className="text-xs text-muted-foreground">{result.subtitle}</p>
                       ) : null}
                     </div>
                   </button>

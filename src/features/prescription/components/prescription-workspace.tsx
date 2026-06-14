@@ -286,7 +286,7 @@ function EmptySoapRequired({ consultationId }: { consultationId: string }) {
       </div>
       <Button type="button" asChild>
         <Link href={routes.app.consultationSoap(consultationId)}>
-          Open SOAP workspace
+          Open note
         </Link>
       </Button>
     </div>

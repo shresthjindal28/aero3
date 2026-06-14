@@ -1,63 +1,53 @@
 "use client";
 
 import Link from "next/link";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo } from "react";
 import {
   ArrowRight,
   CalendarClock,
   ClipboardList,
   Stethoscope,
   Users,
-  type LucideIcon,
 } from "lucide-react";
 
+import { ResumeVisitButton } from "@/features/dashboard/components/resume-visit-button";
+import { PriorityCard } from "@/features/dashboard/components/priority-card";
 import { ClinicalStatusBadge } from "@/features/dashboard/components/clinical-status-badge";
 import { useDoctorDashboard } from "@/features/dashboard/hooks/use-doctor-dashboard";
+import { listSessionsByConsultation } from "@/features/sessions/api/sessions.api";
+import { useActiveSessionsMap } from "@/features/sessions/hooks/use-active-sessions-map";
 import { routes } from "@/shared/constants/routes";
+import { queryKeys } from "@/shared/constants/query-keys";
 import { ApiErrorDisplay } from "@/shared/ui/feedback/api-error";
 import { DashboardSkeleton } from "@/shared/ui/feedback/clinical-skeletons";
 import { PageContainer } from "@/shared/ui/layout/page-container";
 import { PageHeader } from "@/shared/ui/layout/page-header";
 import { Button } from "@/shared/ui/primitives/button";
-import { cn } from "@/lib/utils/cn";
-
-function PriorityCard({
-  label,
-  value,
-  hint,
-  icon: Icon,
-  tone = "default",
-}: {
-  label: string;
-  value: number;
-  hint: string;
-  icon: LucideIcon;
-  tone?: "default" | "urgent" | "calm";
-}) {
-  return (
-    <div
-      className={cn(
-        "rounded-xl border bg-card/50 p-5",
-        tone === "urgent" && "border-emerald-500/40 bg-emerald-500/5",
-        tone === "calm" && "border-border/60",
-        tone === "default" && "border-border/60",
-      )}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-sm font-medium text-muted-foreground">{label}</p>
-          <p className="mt-2 text-3xl font-semibold tabular-nums tracking-tight">{value}</p>
-          <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
-        </div>
-        <div className="rounded-lg bg-muted/60 p-2.5">
-          <Icon className="h-5 w-5 text-muted-foreground" />
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export function DoctorDashboardPage() {
+  const queryClient = useQueryClient();
   const { data, isLoading, isError, error, refetch } = useDoctorDashboard();
+
+  const sessionLookupIds = useMemo(() => {
+    if (!data) return [];
+    const ids = data.actionQueue.map((item) => item.consultation.id);
+    if (data.primaryActive) {
+      ids.unshift(data.primaryActive.id);
+    }
+    return ids;
+  }, [data]);
+
+  const { sessionByConsultationId } = useActiveSessionsMap(sessionLookupIds);
+
+  useEffect(() => {
+    if (!data?.primaryActive) return;
+    void queryClient.prefetchQuery({
+      queryKey: queryKeys.sessions.byConsultation(data.primaryActive.id),
+      queryFn: () => listSessionsByConsultation(data.primaryActive!.id),
+      staleTime: 60_000,
+    });
+  }, [data?.primaryActive, queryClient]);
 
   return (
     <PageContainer>
@@ -82,7 +72,9 @@ export function DoctorDashboardPage() {
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
-                    Active consultation
+                    {sessionByConsultationId.has(data.primaryActive.id)
+                      ? "Visit in progress"
+                      : "Active visit"}
                   </p>
                   <p className="mt-1 text-2xl font-semibold tracking-tight">
                     {data.primaryActivePatient?.full_name ?? "Patient"}
@@ -91,42 +83,41 @@ export function DoctorDashboardPage() {
                     {data.primaryActive.chief_complaint ?? "Continue documenting this visit"}
                   </p>
                 </div>
-                <Button asChild size="lg">
-                  <Link href={routes.app.consultationDetail(data.primaryActive.id)}>
-                    Resume visit
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </Button>
+                <ResumeVisitButton consultationId={data.primaryActive.id} />
               </div>
             </section>
           ) : null}
 
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <PriorityCard
-              label="Active consultations"
+              label="Active visits"
               value={data.activeConsultations}
               hint="Visits in progress"
               icon={Stethoscope}
               tone="urgent"
+              href={routes.app.consultationsWithFilter("active")}
             />
             <PriorityCard
               label="Waiting patients"
               value={data.waitingPatients}
               hint="Scheduled and ready"
               icon={CalendarClock}
+              href={routes.app.consultationsWithFilter("waiting")}
             />
             <PriorityCard
-              label="Pending clinical notes"
+              label="Notes to complete"
               value={data.pendingNotes}
-              hint="SOAP notes to review"
+              hint="Draft or sign clinical notes"
               icon={ClipboardList}
+              href={routes.app.consultationsWithFilter("needs-note")}
             />
             <PriorityCard
-              label="Today's patients"
+              label="Patients on panel"
               value={data.totalPatients}
-              hint="On your panel"
+              hint="Your patient list"
               icon={Users}
               tone="calm"
+              href={routes.app.patients}
             />
           </div>
 
@@ -135,7 +126,7 @@ export function DoctorDashboardPage() {
               <div className="flex items-center justify-between gap-3">
                 <h2 className="text-base font-semibold">Action queue</h2>
                 <Button type="button" variant="ghost" size="sm" asChild>
-                  <Link href={routes.app.consultations}>See all</Link>
+                  <Link href={routes.app.consultations}>See all visits</Link>
                 </Button>
               </div>
               <ul className="mt-4 space-y-2">
@@ -144,22 +135,29 @@ export function DoctorDashboardPage() {
                     No patients waiting. Your queue is clear.
                   </li>
                 ) : (
-                  data.actionQueue.map(({ consultation, patientName }) => (
-                    <li key={consultation.id}>
-                      <Link
-                        href={routes.app.consultationDetail(consultation.id)}
-                        className="flex items-center justify-between gap-3 rounded-lg border border-border/40 px-4 py-3 transition-colors hover:bg-muted/30"
-                      >
-                        <div className="min-w-0">
-                          <p className="truncate text-base font-medium">{patientName}</p>
-                          <p className="truncate text-sm text-muted-foreground">
-                            {consultation.chief_complaint ?? "Open consultation"}
-                          </p>
-                        </div>
-                        <ClinicalStatusBadge status={consultation.status} />
-                      </Link>
-                    </li>
-                  ))
+                  data.actionQueue.map(({ consultation, patientName }) => {
+                    const activeSession = sessionByConsultationId.get(consultation.id);
+                    const href = activeSession
+                      ? routes.app.sessionDetail(activeSession.id)
+                      : routes.app.consultationDetail(consultation.id);
+
+                    return (
+                      <li key={consultation.id}>
+                        <Link
+                          href={href}
+                          className="flex items-center justify-between gap-3 rounded-lg border border-border/40 px-4 py-3 transition-colors hover:bg-muted/30"
+                        >
+                          <div className="min-w-0">
+                            <p className="truncate text-base font-medium">{patientName}</p>
+                            <p className="truncate text-sm text-muted-foreground">
+                              {consultation.chief_complaint ?? "Open visit"}
+                            </p>
+                          </div>
+                          <ClinicalStatusBadge status={consultation.status} />
+                        </Link>
+                      </li>
+                    );
+                  })
                 )}
               </ul>
             </section>
@@ -174,7 +172,7 @@ export function DoctorDashboardPage() {
               <ul className="mt-4 space-y-2">
                 {data.recentPatients.length === 0 ? (
                   <li className="rounded-lg border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
-                    Add your first patient to begin consultations.
+                    Add your first patient to begin visits.
                   </li>
                 ) : (
                   data.recentPatients.map((patient) => (

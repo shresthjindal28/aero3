@@ -1,6 +1,19 @@
 import type { Metadata } from "next";
+import { Inter, Lora } from "next/font/google";
 
 import { AppProviders } from "@/providers/app-providers";
+
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+});
+
+const lora = Lora({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-lora",
+});
 import "@/styles/globals.css";
 import "@/styles/themes/doctor.css";
 import "@/styles/themes/admin.css";
@@ -24,7 +37,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="min-h-screen antialiased">
+      <body className={`${inter.variable} ${lora.variable} min-h-screen font-sans antialiased`}>
         <AppProviders>{children}</AppProviders>
       </body>
     </html>

@@ -3,15 +3,13 @@
 import { useDoctorMe } from "@/features/auth/hooks/use-doctor-auth";
 import { formatDate } from "@/lib/utils/date";
 import { ApiErrorDisplay } from "@/shared/ui/feedback/api-error";
-import { PageLoader } from "@/shared/ui/feedback/page-loader";
+import { ProfileSettingsSkeleton } from "@/shared/ui/feedback/clinical-skeletons";
 import { cn } from "@/lib/utils/cn";
 
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div className="space-y-1">
-      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-        {label}
-      </p>
+      <p className="text-xs font-medium text-muted-foreground">{label}</p>
       <p className="text-sm">{value}</p>
     </div>
   );
@@ -26,7 +24,7 @@ const statusStyles = {
 export function ProfileSettings() {
   const { data: doctor, isLoading, isError, error, refetch } = useDoctorMe(true);
 
-  if (isLoading) return <PageLoader label="Loading profile..." />;
+  if (isLoading && !doctor) return <ProfileSettingsSkeleton />;
 
   if (isError || !doctor) {
     return (
@@ -40,7 +38,7 @@ export function ProfileSettings() {
   return (
     <div className="space-y-6">
       <section className="rounded-xl border border-border/60 bg-card/50 p-6">
-        <h2 className="text-base font-semibold">Doctor details</h2>
+        <h2 className="text-base font-semibold">Your details</h2>
         <div className="mt-6 grid gap-5 sm:grid-cols-2">
           <Field label="Full name" value={doctor.full_name} />
           <Field label="Email" value={doctor.email} />
@@ -59,7 +57,7 @@ export function ProfileSettings() {
       </section>
 
       <section className="rounded-xl border border-border/60 bg-card/50 p-6">
-        <h2 className="text-base font-semibold">Registration & hospital</h2>
+        <h2 className="text-base font-semibold">Practice</h2>
         <div className="mt-6 grid gap-5 sm:grid-cols-2">
           <Field label="Hospital" value={doctor.hospital_name ?? "—"} />
           <Field label="City" value={doctor.city ?? "—"} />
@@ -74,7 +72,7 @@ export function ProfileSettings() {
       </section>
 
       <section className="rounded-xl border border-border/60 bg-card/50 p-6">
-        <h2 className="text-base font-semibold">Verification status</h2>
+        <h2 className="text-base font-semibold">Verification</h2>
         <div className="mt-4 flex flex-wrap gap-3 text-sm">
           <span
             className={cn(
@@ -91,9 +89,6 @@ export function ProfileSettings() {
             Phone {doctor.phone_verified ? "verified" : "pending"}
           </span>
         </div>
-        <p className="mt-4 text-sm text-muted-foreground">
-          Profile editing will be available when the backend profile update API ships.
-        </p>
       </section>
     </div>
   );

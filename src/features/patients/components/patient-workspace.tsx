@@ -86,7 +86,7 @@ export function PatientWorkspace({ patient }: PatientWorkspaceProps) {
             <Button asChild>
               <Link href={routes.app.patientConsultationNew(patient.id)}>
                 <Plus className="h-4 w-4" />
-                Start new consultation
+                Start visit
               </Link>
             </Button>
           </div>
@@ -97,7 +97,7 @@ export function PatientWorkspace({ patient }: PatientWorkspaceProps) {
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="timeline">Timeline</TabsTrigger>
-          <TabsTrigger value="consultations">Consultations</TabsTrigger>
+          <TabsTrigger value="consultations">Visits</TabsTrigger>
           <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
         </TabsList>
 
@@ -114,7 +114,7 @@ export function PatientWorkspace({ patient }: PatientWorkspaceProps) {
             <Button asChild>
               <Link href={routes.app.patientConsultationNew(patient.id)}>
                 <Plus className="h-4 w-4" />
-                Start new consultation
+                Start visit
               </Link>
             </Button>
           </div>

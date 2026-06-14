@@ -17,9 +17,9 @@ export const breadcrumbRoutes: BreadcrumbRouteMap = {
     { label: "Patients", href: routes.app.patients },
     { label: "New" },
   ],
-  [routes.app.consultations]: [{ label: "Consultations" }],
-  [routes.app.sessions]: [{ label: "Live Sessions" }],
-  [routes.app.memory]: [{ label: "Memory" }],
+  [routes.app.consultations]: [{ label: "Visits" }],
+  [routes.app.sessions]: [{ label: "Active visits" }],
+  [routes.app.memory]: [{ label: "Chart summary" }],
   [routes.app.documents]: [{ label: "Documents" }],
   [routes.app.settings]: [{ label: "Settings" }],
   [routes.app.settingsProfile]: [
@@ -43,8 +43,8 @@ export const breadcrumbRoutes: BreadcrumbRouteMap = {
 function formatSegmentLabel(segment: string, parentSegment?: string): string {
   if (UUID_PATTERN.test(segment)) {
     if (parentSegment === "patients") return "Patient";
-    if (parentSegment === "consultations") return "Consultation";
-    if (parentSegment === "sessions") return "Session";
+    if (parentSegment === "consultations") return "Visit";
+    if (parentSegment === "sessions") return "Active visit";
     return "Details";
   }
 

@@ -13,7 +13,7 @@ export function MemoryProfileCard({ profile, isLoading }: MemoryProfileCardProps
     <section className="rounded-xl border border-border/60 bg-card/50 p-5">
       <div className="flex items-center gap-2">
         <Brain className="h-4 w-4 text-primary" />
-        <h2 className="text-sm font-medium">Patient memory profile</h2>
+        <h2 className="text-sm font-medium">Chart summary profile</h2>
       </div>
 
       {isLoading ? (

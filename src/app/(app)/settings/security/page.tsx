@@ -5,7 +5,7 @@ import { PageHeader } from "@/shared/ui/layout/page-header";
 export default function SecuritySettingsRoute() {
   return (
     <PageContainer>
-      <PageHeader title="Security" description="Password, sessions, and login history" />
+      <PageHeader title="Security" description="Account security options" />
       <div className="mt-6">
         <SecuritySettings />
       </div>

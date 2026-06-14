@@ -53,3 +53,42 @@ export function TableRowsSkeleton({ rows = 5 }: { rows?: number }) {
     </div>
   );
 }
+
+export function PatientDetailSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-4 w-64" />
+      </div>
+      <Skeleton className="h-10 w-full max-w-md" />
+      <div className="space-y-3">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-24 w-full rounded-xl" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function ConsultationDetailSkeleton() {
+  return (
+    <div className="space-y-6">
+      <Skeleton className="h-36 w-full rounded-xl" />
+      <div className="flex gap-2">
+        <Skeleton className="h-10 w-32" />
+        <Skeleton className="h-10 w-36" />
+      </div>
+      <Skeleton className="h-40 w-full rounded-xl" />
+    </div>
+  );
+}
+
+export function ProfileSettingsSkeleton() {
+  return (
+    <div className="space-y-6">
+      <Skeleton className="h-48 w-full rounded-xl" />
+      <Skeleton className="h-48 w-full rounded-xl" />
+    </div>
+  );
+}

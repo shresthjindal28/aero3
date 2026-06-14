@@ -36,7 +36,7 @@ export function CreateConsultationPage() {
   return (
     <PageContainer className="max-w-2xl">
       <PageHeader
-        title="Start new consultation"
+        title="Start a visit"
         description={`Create a consultation for ${patient.full_name}.`}
       />
       <div className="mt-8 rounded-xl border bg-card p-6 shadow-sm">

@@ -144,7 +144,7 @@ export function PrescriptionSummarySidebar({
           className="mt-6 flex items-center gap-2 rounded-lg border border-border/50 bg-background/40 px-3 py-2.5 text-sm text-primary transition-colors hover:bg-background/80"
         >
           <FileText className="h-4 w-4 shrink-0" />
-          Open SOAP workspace
+          Open note
         </Link>
 
         {prescription ? (

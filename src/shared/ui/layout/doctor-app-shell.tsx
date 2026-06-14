@@ -102,6 +102,7 @@ export function DoctorAppShell({ children }: DoctorAppShellProps) {
           <AppHeader
             breadcrumbs={breadcrumbs}
             showBreadcrumbs={!isClinicalWorkspace(pathname)}
+            showThemeToggle={!isClinicalWorkspace(pathname)}
             user={{
               ...shellUser,
               actorType: "doctor",

@@ -111,7 +111,7 @@ export function MemoryWorkspace({ patientId }: MemoryWorkspaceProps) {
   return (
     <div className="flex min-h-[calc(100vh-4rem)] flex-col bg-background">
       <header className="border-b border-border/60 bg-card/40 px-6 py-4 backdrop-blur">
-        <p className="text-sm text-muted-foreground">Patient memory</p>
+        <p className="text-sm text-muted-foreground">Chart summary</p>
         <h1 className="text-2xl font-semibold tracking-tight">{patient.full_name}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           A living summary of what AIRO remembers from this patient&apos;s care
@@ -144,7 +144,7 @@ export function MemoryWorkspace({ patientId }: MemoryWorkspaceProps) {
               )}
 
               <section className="rounded-xl border border-border/60 bg-card/50 p-4">
-                <h2 className="text-sm font-medium">Search patient memory</h2>
+                <h2 className="text-sm font-medium">Search chart summary</h2>
                 <p className="mt-1 text-xs text-muted-foreground">
                   Find past notes, summaries, and visit details in plain language.
                 </p>
@@ -159,7 +159,7 @@ export function MemoryWorkspace({ patientId }: MemoryWorkspaceProps) {
                       }}
                       placeholder="e.g. medications, allergies, last visit…"
                       className="pl-9"
-                      aria-label="Search patient memory"
+                      aria-label="Search chart summary"
                     />
                   </div>
                   <Button
