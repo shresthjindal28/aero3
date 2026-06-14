@@ -95,6 +95,21 @@ export function readVerificationStatus(): VerificationStatus | null {
   return null;
 }
 
+export function readDoctorAccessState(): DoctorAccessState | null {
+  if (!isBrowser) return null;
+
+  const state = localStorage.getItem(authConfig.storageKeys.doctorAccessState);
+  if (
+    state === "approved" ||
+    state === "awaiting_review" ||
+    state === "onboarding" ||
+    state === "rejected"
+  ) {
+    return state;
+  }
+  return null;
+}
+
 export function readStoredSession(): {
   accessToken: string | null;
   refreshToken: string | null;

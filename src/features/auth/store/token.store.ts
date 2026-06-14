@@ -22,10 +22,12 @@ type TokenState = {
   clear: () => void;
 };
 
+const initialSession = readStoredSession();
+
 export const useTokenStore = create<TokenState>((set, get) => ({
-  accessToken: null,
-  refreshToken: null,
-  actorType: null,
+  accessToken: initialSession.accessToken,
+  refreshToken: initialSession.refreshToken,
+  actorType: initialSession.actorType,
 
   setTokens: ({ accessToken, refreshToken, actorType }) => {
     const resolvedActorType = actorType ?? get().actorType;

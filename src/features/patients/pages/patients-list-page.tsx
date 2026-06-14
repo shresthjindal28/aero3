@@ -40,7 +40,7 @@ export function PatientsListPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <PageHeader
           title="Patients"
-          description="Your clinical workflow starts here. Manage patient records before consultations and sessions."
+          description="Your panel — find patients quickly and start the next visit."
         />
         <Button asChild className="shrink-0">
           <Link href={routes.app.patientsNew}>

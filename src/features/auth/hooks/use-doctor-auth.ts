@@ -12,20 +12,22 @@ import type { DoctorSignupFormValues } from "@/features/auth/schemas/signup.sche
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useTokenStore } from "@/features/auth/store/token.store";
 import { getDefaultRouteForActor } from "@/features/auth/utils/actor-resolver";
-import { invalidationHelpers } from "@/lib/query/invalidation-helpers";
+import { queryConfig } from "@/lib/query/query-config";
 import { queryKeys } from "@/shared/constants/query-keys";
+
+const DOCTOR_PROFILE_STALE_MS = 5 * 60_000;
 
 export function useDoctorMe(enabled = true) {
   return useQuery({
     queryKey: queryKeys.doctor.me,
     queryFn: getDoctorMe,
     enabled,
+    staleTime: DOCTOR_PROFILE_STALE_MS,
+    gcTime: queryConfig.defaultGcTimeMs,
   });
 }
 
 export function useDoctorLogin() {
-  const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: (values: LoginFormValues) => doctorLogin(values),
     onSuccess: (tokens) => {
@@ -35,7 +37,6 @@ export function useDoctorLogin() {
         actorType: "doctor",
       });
       useAuthStore.getState().setSession("doctor");
-      void invalidationHelpers.invalidateAuth(queryClient, "doctor");
     },
   });
 }

@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 
 import type { NavItem } from "@/config/navigation.config";
+import { prefetchDoctorRoute } from "@/lib/query/route-prefetch";
 import { cn } from "@/lib/utils/cn";
 
 type SidebarNavProps = {
@@ -23,14 +25,25 @@ function NavLink({
   collapsed: boolean;
   onNavigate?: () => void;
 }) {
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const Icon = item.icon;
 
   return (
     <Link
       href={item.href}
+      prefetch
+      onMouseEnter={() => {
+        router.prefetch(item.href);
+        prefetchDoctorRoute(queryClient, item.href);
+      }}
+      onFocus={() => {
+        router.prefetch(item.href);
+        prefetchDoctorRoute(queryClient, item.href);
+      }}
       onClick={onNavigate}
       className={cn(
-        "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+        "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
         isActive
           ? "bg-accent text-accent-foreground"
           : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",

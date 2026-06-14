@@ -1,10 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { useDoctorLogin } from "@/features/auth/hooks/use-doctor-auth";
-import { resolveDoctorPostAuthRoute } from "@/features/auth/utils/doctor-route-resolver";
+import { seedDoctorPostAuthCache } from "@/features/auth/utils/doctor-route-resolver";
 import {
   loginSchema,
   type LoginFormValues,
@@ -17,6 +18,7 @@ import { Input } from "@/shared/ui/primitives/input";
 
 export function DoctorLoginForm() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const loginMutation = useDoctorLogin();
   const form = useZodForm<LoginFormValues>(loginSchema, {
     defaultValues: { email: "", password: "" },
@@ -26,7 +28,7 @@ export function DoctorLoginForm() {
     try {
       await loginMutation.mutateAsync(values);
       toast.success("Welcome back");
-      const route = await resolveDoctorPostAuthRoute();
+      const route = await seedDoctorPostAuthCache(queryClient);
       router.replace(route);
     } catch (error) {
       const apiError = error as ApiError;

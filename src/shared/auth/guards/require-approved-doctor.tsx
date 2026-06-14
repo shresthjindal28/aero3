@@ -5,8 +5,8 @@ import { useEffect } from "react";
 
 import { useDoctorMe } from "@/features/auth/hooks/use-doctor-auth";
 import { getDoctorRouteForVerificationStatus } from "@/features/auth/utils/doctor-route-resolver";
+import { readDoctorAccessState } from "@/features/auth/utils/token-storage";
 import { useOnboardingStatus } from "@/features/onboarding/hooks/use-onboarding";
-import { PageLoader } from "@/shared/ui/feedback/page-loader";
 
 type RequireApprovedDoctorProps = {
   children: React.ReactNode;
@@ -14,28 +14,27 @@ type RequireApprovedDoctorProps = {
 
 export function RequireApprovedDoctor({ children }: RequireApprovedDoctorProps) {
   const router = useRouter();
-  const { data: doctor, isLoading: doctorLoading } = useDoctorMe();
-  const { data: status, isLoading: statusLoading } = useOnboardingStatus();
+  const cachedAccess = readDoctorAccessState();
+  const likelyApproved = cachedAccess === "approved";
+
+  const { data: doctor } = useDoctorMe();
+  const { data: status } = useOnboardingStatus(!likelyApproved);
 
   useEffect(() => {
-    if (!doctor || !status) return;
+    if (!doctor) return;
 
     if (doctor.verification_status !== "approved") {
       router.replace(
         getDoctorRouteForVerificationStatus(
           doctor.verification_status,
-          status.verification_submitted,
+          status?.verification_submitted ?? false,
         ),
       );
     }
   }, [doctor, status, router]);
 
-  if (doctorLoading || statusLoading) {
-    return <PageLoader label="Checking account status..." />;
-  }
-
-  if (!doctor || doctor.verification_status !== "approved") {
-    return <PageLoader label="Redirecting..." />;
+  if (doctor && doctor.verification_status !== "approved") {
+    return null;
   }
 
   return <>{children}</>;

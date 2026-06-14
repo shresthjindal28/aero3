@@ -5,7 +5,6 @@ import { useEffect, type ReactNode } from "react";
 
 import { rolesConfig } from "@/config/roles.config";
 import { useAuthStore } from "@/features/auth/store/auth.store";
-import { PageLoader } from "@/shared/ui/feedback/page-loader";
 import type { ActorType } from "@/types/domain/actor.types";
 
 type RequireAuthProps = {
@@ -17,7 +16,7 @@ type RequireAuthProps = {
 export function RequireAuth({
   actorType,
   children,
-  fallback,
+  fallback = null,
 }: RequireAuthProps) {
   const router = useRouter();
   const { isAuthenticated, actorType: currentActor, isHydrated } = useAuthStore();
@@ -35,11 +34,11 @@ export function RequireAuth({
   }, [actorType, currentActor, isAuthenticated, isHydrated, router]);
 
   if (!isHydrated) {
-    return <>{fallback ?? <PageLoader label="Checking session..." />}</>;
+    return <>{children}</>;
   }
 
   if (!isAuthenticated || currentActor !== actorType) {
-    return <>{fallback ?? <PageLoader label="Redirecting..." />}</>;
+    return <>{fallback}</>;
   }
 
   return <>{children}</>;

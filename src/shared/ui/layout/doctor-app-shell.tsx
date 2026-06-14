@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 
 import {
@@ -8,10 +9,10 @@ import {
   doctorSettingsNavigation,
 } from "@/config/navigation.config";
 import { useDoctorLogout, useDoctorMe } from "@/features/auth/hooks/use-doctor-auth";
+import { prefetchDoctorWorkspaceData } from "@/lib/query/route-prefetch";
 import { useAppBreadcrumbs } from "@/shared/hooks/use-app-breadcrumbs";
 import { useShellStore } from "@/shared/store/shell.store";
 import { ApiErrorDisplay } from "@/shared/ui/feedback/api-error";
-import { ShellSkeletonLoader } from "@/shared/ui/feedback/skeleton-loader";
 import { AppHeader } from "@/shared/ui/layout/app-header";
 import { MobileSidebarDrawer } from "@/shared/ui/layout/mobile-sidebar-drawer";
 import { Sidebar } from "@/shared/ui/layout/sidebar";
@@ -40,12 +41,17 @@ function isImmersiveWorkspace(pathname: string): boolean {
 
 export function DoctorAppShell({ children }: DoctorAppShellProps) {
   const pathname = usePathname();
+  const queryClient = useQueryClient();
   const breadcrumbs = useAppBreadcrumbs();
   const logout = useDoctorLogout();
   const { sidebarCollapsed, setSidebarCollapsed } = useShellStore();
   const immersive = isImmersiveWorkspace(pathname);
-  const { data: doctor, isLoading, isError, error, refetch } = useDoctorMe(true);
+  const { data: doctor, isError, error, refetch } = useDoctorMe(true);
   const commandPalette = useCommandPalette();
+
+  useEffect(() => {
+    prefetchDoctorWorkspaceData(queryClient);
+  }, [queryClient]);
 
   useEffect(() => {
     if (immersive) {
@@ -53,11 +59,13 @@ export function DoctorAppShell({ children }: DoctorAppShellProps) {
     }
   }, [immersive, setSidebarCollapsed]);
 
-  if (isLoading) {
-    return <ShellSkeletonLoader />;
-  }
+  const shellUser = {
+    name: doctor?.full_name ?? "Doctor",
+    email: doctor?.email ?? "",
+    avatarUrl: doctor?.profile_picture_url,
+  };
 
-  if (isError || !doctor) {
+  if (isError && !doctor) {
     return (
       <div className="flex min-h-screen items-center justify-center p-6">
         <ApiErrorDisplay
@@ -73,11 +81,7 @@ export function DoctorAppShell({ children }: DoctorAppShellProps) {
       {!immersive ? (
         <div className="hidden h-full shrink-0 md:flex">
           <Sidebar
-            user={{
-              name: doctor.full_name,
-              email: doctor.email,
-              avatarUrl: doctor.profile_picture_url,
-            }}
+            user={shellUser}
             items={doctorNavigation}
             footerItems={doctorSettingsNavigation}
             collapsed={sidebarCollapsed}
@@ -87,11 +91,7 @@ export function DoctorAppShell({ children }: DoctorAppShellProps) {
 
       {!immersive ? (
         <MobileSidebarDrawer
-          user={{
-            name: doctor.full_name,
-            email: doctor.email,
-            avatarUrl: doctor.profile_picture_url,
-          }}
+          user={shellUser}
           items={doctorNavigation}
           footerItems={doctorSettingsNavigation}
         />
@@ -103,9 +103,7 @@ export function DoctorAppShell({ children }: DoctorAppShellProps) {
             breadcrumbs={breadcrumbs}
             showBreadcrumbs={!isClinicalWorkspace(pathname)}
             user={{
-              name: doctor.full_name,
-              email: doctor.email,
-              avatarUrl: doctor.profile_picture_url,
+              ...shellUser,
               actorType: "doctor",
             }}
             onLogout={logout}

@@ -19,10 +19,10 @@ export type NavItem = {
 };
 
 export const doctorNavigation: NavItem[] = [
-  { label: "Dashboard", href: routes.app.dashboard, icon: LayoutDashboard },
+  { label: "Today's practice", href: routes.app.dashboard, icon: LayoutDashboard },
   { label: "Patients", href: routes.app.patients, icon: Users },
   { label: "Consultations", href: routes.app.consultations, icon: Stethoscope },
-  { label: "Live Sessions", href: routes.app.sessions, icon: Mic },
+  { label: "Live visits", href: routes.app.sessions, icon: Mic },
 ];
 
 export const doctorSettingsNavigation: NavItem[] = [
