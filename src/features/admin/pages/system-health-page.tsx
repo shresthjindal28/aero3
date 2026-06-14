@@ -7,7 +7,7 @@ import { PageLoader } from "@/shared/ui/feedback/page-loader";
 import { PageContainer } from "@/shared/ui/layout/page-container";
 import { PageHeader } from "@/shared/ui/layout/page-header";
 
-const REFRESH_MS = 15_000;
+const REFRESH_MS = 60_000;
 
 function StatusBadge({ status }: { status: string }) {
   const color =
@@ -53,7 +53,7 @@ export function SystemHealthPage() {
     <PageContainer>
       <PageHeader
         title="System Health"
-        description={`Production monitoring dashboard · refreshed every 15s · last update ${lastUpdated}`}
+        description={`Production monitoring dashboard · refreshed every 60s · last update ${lastUpdated}`}
       />
 
       <section className="mt-6">
