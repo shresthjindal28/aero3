@@ -55,7 +55,7 @@ export function SessionWorkspace({ sessionId }: SessionWorkspaceProps) {
     workspace.consultation.chief_complaint ?? "Consultation";
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] flex-col bg-background">
+    <div className="flex h-full min-h-0 flex-col bg-background">
       <SessionHeader
         patientName={patientName}
         consultationLabel={consultationLabel}
@@ -64,8 +64,8 @@ export function SessionWorkspace({ sessionId }: SessionWorkspaceProps) {
         connectionStatus={workspace.connectionStatus}
       />
 
-      <div className="grid min-h-0 flex-1 gap-4 p-4 lg:grid-cols-[380px_1fr] lg:p-6">
-        <aside className="space-y-4">
+      <div className="grid min-h-0 flex-1 gap-4 overflow-y-auto p-4 lg:grid-cols-[380px_1fr] lg:overflow-hidden lg:p-6">
+        <aside className="min-h-0 space-y-4 lg:overflow-y-auto lg:overscroll-contain lg:pr-1">
           {workspace.needsMicrophoneAccess ? (
             <MicAccessBanner
               onEnableMicrophone={() => void workspace.retryMicrophoneAccess()}
@@ -172,7 +172,7 @@ export function SessionWorkspace({ sessionId }: SessionWorkspaceProps) {
           />
         </aside>
 
-        <section className="min-h-[420px] lg:min-h-0 lg:h-full">
+        <section className="flex min-h-0 flex-col lg:h-full">
           <TranscriptStream
             segments={workspace.transcriptSegments}
             autoScrollEnabled={workspace.autoScrollEnabled}

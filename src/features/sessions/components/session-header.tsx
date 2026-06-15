@@ -48,7 +48,7 @@ export function SessionHeader({
   connectionStatus,
 }: SessionHeaderProps) {
   return (
-    <header className="border-b border-border/60 bg-card/40 px-6 py-4 backdrop-blur">
+    <header className="shrink-0 border-b border-border/60 bg-card/40 px-6 py-4 backdrop-blur">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="space-y-1">
           <p className="text-sm text-muted-foreground">{patientName}</p>

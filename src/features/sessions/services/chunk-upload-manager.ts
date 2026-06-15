@@ -5,6 +5,7 @@ import type { ChunkRecord } from "@/features/sessions/types/audio-chunk.types";
 import { computeSha256Hex } from "@/features/sessions/utils/checksum";
 import { PriorityQueue } from "@/features/sessions/utils/priority-queue";
 import { Queue } from "@/features/sessions/utils/queue";
+import type { ApiError } from "@/lib/api/types/api-error.types";
 
 type ChunkUploadTask = {
   chunkNumber: number;
@@ -34,9 +35,15 @@ export class ChunkUploadManager {
   private paused = false;
   private uploadedCount = 0;
   private failedCount = 0;
+  private halted = false;
 
   constructor(options: ChunkUploadManagerOptions) {
     this.options = options;
+  }
+
+  halt(): void {
+    this.halted = true;
+    this.pendingQueue.clear();
   }
 
   enqueue(chunk: Omit<ChunkUploadTask, "retryCount">): void {
@@ -92,7 +99,7 @@ export class ChunkUploadManager {
   }
 
   private async process(): Promise<void> {
-    if (this.processing) return;
+    if (this.processing || this.halted) return;
     this.processing = true;
 
     try {
@@ -117,7 +124,7 @@ export class ChunkUploadManager {
 
   private async uploadTask(task: ChunkUploadTask): Promise<void> {
     const record = this.chunkMap.get(task.chunkNumber);
-    if (!record) return;
+    if (!record || this.halted) return;
 
     record.state = "uploading";
     this.emitMetrics();
@@ -150,7 +157,17 @@ export class ChunkUploadManager {
       this.uploadedCount += 1;
       this.emitMetrics();
       this.applyBackpressure();
-    } catch {
+    } catch (error) {
+      const apiError = error as ApiError;
+      const message = apiError.message ?? "";
+
+      if (message.includes("Session must be active")) {
+        record.state = "failed";
+        this.failedCount += 1;
+        this.emitMetrics();
+        return;
+      }
+
       record.retryCount += 1;
 
       if (record.retryCount >= sessionConfig.maxUploadRetries) {

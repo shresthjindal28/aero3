@@ -93,11 +93,23 @@ export class SessionRealtimeService {
     }
 
     if (event.type === "transcript_finalized") {
-      this.callbacks.onFinalized({
-        mergedText: event.merged_text,
-        missingChunks: event.missing_chunks,
-      });
-      this.callbacks.onConnectionChange("connected");
+      void this.handleFinalized(event);
+      return;
     }
+  }
+
+  private async handleFinalized(event: Extract<TranscriptWsEvent, { type: "transcript_finalized" }>): Promise<void> {
+    try {
+      await this.transcriptSync.syncFromApi(this.sessionId);
+      this.callbacks.onSegmentsChange();
+    } catch {
+      // Polling on the workspace will retry if sync fails.
+    }
+
+    this.callbacks.onFinalized({
+      mergedText: event.merged_text,
+      missingChunks: event.missing_chunks,
+    });
+    this.callbacks.onConnectionChange("connected");
   }
 }

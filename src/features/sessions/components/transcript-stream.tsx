@@ -43,7 +43,7 @@ export function TranscriptStream({
   }, [autoScrollEnabled, segments]);
 
   return (
-    <div className="flex h-[min(72vh,720px)] min-h-[420px] flex-col rounded-xl border border-border/60 bg-card/30 lg:h-full lg:max-h-[calc(100vh-12rem)]">
+    <div className="flex h-full min-h-[420px] flex-col rounded-xl border border-border/60 bg-card/30">
       <div className="flex items-center justify-between border-b border-border/60 px-4 py-3">
         <h2 className="text-sm font-medium">Live transcript</h2>
         {!autoScrollEnabled ? (

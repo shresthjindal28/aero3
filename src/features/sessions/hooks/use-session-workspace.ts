@@ -77,6 +77,19 @@ export function useSessionWorkspace(sessionId: string) {
     setTranscriptSegmentCount(sync.segmentCount);
   }, [setTranscriptSegmentCount, setTranscriptSegments]);
 
+  const syncTranscriptFromApi = useCallback(async () => {
+    const sync = transcriptSyncRef.current;
+    if (!sync) return false;
+
+    try {
+      await sync.syncFromApi(sessionId);
+      refreshTranscript();
+      return sync.segmentCount > 0;
+    } catch {
+      return false;
+    }
+  }, [refreshTranscript, sessionId]);
+
   useEffect(() => {
     reset();
     const buffer = new TranscriptRingBuffer(sessionConfig.transcriptBufferCapacity);
@@ -156,7 +169,9 @@ export function useSessionWorkspace(sessionId: string) {
       {
         onConnectionChange: setConnectionStatus,
         onSegmentsChange: refreshTranscript,
-        onFinalized: () => refreshTranscript(),
+        onFinalized: () => {
+          void syncTranscriptFromApi();
+        },
         onRecover: async () => {
           await uploadManagerRef.current?.recoverMissing();
         },
@@ -182,6 +197,7 @@ export function useSessionWorkspace(sessionId: string) {
     setConnectionStatus,
     setSessionError,
     setUploadBackpressure,
+    syncTranscriptFromApi,
   ]);
 
   useEffect(() => {
@@ -226,6 +242,58 @@ export function useSessionWorkspace(sessionId: string) {
     }
   }, [session?.status]);
 
+  useEffect(() => {
+    if (!session || session.status !== "ended" || session.last_chunk_number === 0) {
+      return;
+    }
+
+    void syncTranscriptFromApi();
+  }, [session, syncTranscriptFromApi]);
+
+  useEffect(() => {
+    if (!session || session.status !== "ended" || session.last_chunk_number === 0) {
+      return;
+    }
+
+    if (transcriptSegmentCount > 0) {
+      return;
+    }
+
+    let cancelled = false;
+    let attempts = 0;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+    const poll = async () => {
+      if (cancelled) return;
+
+      const hasSegments = await syncTranscriptFromApi();
+      if (hasSegments || attempts >= 36) {
+        return;
+      }
+
+      attempts += 1;
+      timeoutId = setTimeout(() => {
+        void poll();
+      }, 5_000);
+    };
+
+    void poll();
+
+    return () => {
+      cancelled = true;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [
+    session,
+    session?.id,
+    session?.last_chunk_number,
+    session?.status,
+    syncTranscriptFromApi,
+    transcriptSegmentCount,
+  ]);
+
   const retryMicrophoneAccess = useCallback(async () => {
     await beginRecording();
   }, [beginRecording]);
@@ -257,9 +325,9 @@ export function useSessionWorkspace(sessionId: string) {
 
     await recorderRef.current?.stop();
     await uploadManagerRef.current?.flush();
+    uploadManagerRef.current?.halt();
     await endMutation.mutateAsync();
-    realtimeRef.current?.disconnect();
-    setConnectionStatus("disconnected");
+    setConnectionStatus("connected");
   }, [chunksUploaded, endMutation, session?.last_chunk_number, session?.status, setConnectionStatus]);
 
   const controls = useMemo(
