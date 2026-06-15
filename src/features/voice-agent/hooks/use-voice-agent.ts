@@ -27,6 +27,11 @@ type UseVoiceAgentOptions = {
   consultationId?: string;
 };
 
+const STATUS_LABELS: Record<string, string> = {
+  preparing: "Searching patient records…",
+  generating: "Generating answer…",
+};
+
 function playBase64Audio(base64: string, mime: string): Promise<void> {
   return new Promise((resolve, reject) => {
     const src = `data:${mime};base64,${base64}`;
@@ -42,6 +47,7 @@ export function useVoiceAgent({ patientId, consultationId }: UseVoiceAgentOption
   const [turns, setTurns] = useState<VoiceTurn[]>([]);
   const [isStarting, setIsStarting] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
+  const [thinkingStage, setThinkingStage] = useState<string | null>(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [briefingPreview, setBriefingPreview] = useState<string | null>(null);
@@ -56,7 +62,17 @@ export function useVoiceAgent({ patientId, consultationId }: UseVoiceAgentOption
   const audioChunksRef = useRef<Blob[]>([]);
   const serverAudioRef = useRef<HTMLAudioElement | null>(null);
 
-  const stopOutput = useCallback(() => {
+  const finalizeAssistantTurn = useCallback((assistantId: string, content: string) => {
+    setTurns((current) =>
+      current.map((turn) =>
+        turn.id === assistantId
+          ? { ...turn, content, streaming: false }
+          : turn,
+      ),
+    );
+  }, []);
+
+  const stopOutput = useCallback((options?: { notifyServer?: boolean }) => {
     abortRef.current?.abort();
     abortRef.current = null;
     if (typeof window !== "undefined" && window.speechSynthesis) {
@@ -71,7 +87,8 @@ export function useVoiceAgent({ patientId, consultationId }: UseVoiceAgentOption
     setIsSpeaking(false);
     setIsListening(false);
     setIsThinking(false);
-    if (sessionIdRef.current) {
+    setThinkingStage(null);
+    if (sessionIdRef.current && options?.notifyServer !== false) {
       void interruptVoiceSession(sessionIdRef.current);
     }
     setTurns((current) =>
@@ -122,9 +139,13 @@ export function useVoiceAgent({ patientId, consultationId }: UseVoiceAgentOption
       abortRef.current = new AbortController();
       let accumulated = "";
       let pendingAudio: { content: string; mime: string } | null = null;
+      let completed = false;
 
       await streamVoiceUtterance(sid, utterance, {
         signal: abortRef.current.signal,
+        onStatus: (stage) => {
+          setThinkingStage(STATUS_LABELS[stage] ?? "Working on your question…");
+        },
         onToken: (token) => {
           accumulated += token;
           setTurns((current) =>
@@ -133,11 +154,24 @@ export function useVoiceAgent({ patientId, consultationId }: UseVoiceAgentOption
             ),
           );
         },
-        onInterrupted: () => stopOutput(),
+        onInterrupted: () => {
+          if (!accumulated) {
+            finalizeAssistantTurn(
+              assistantId,
+              "Response interrupted. Ask again to continue.",
+            );
+          }
+          stopOutput({ notifyServer: false });
+        },
+        onError: (message) => {
+          finalizeAssistantTurn(assistantId, message);
+          setError(message);
+        },
         onAudio: (audio) => {
           pendingAudio = audio;
         },
         onDone: (result) => {
+          completed = true;
           setTurns((current) =>
             current.map((turn) =>
               turn.id === assistantId
@@ -166,8 +200,12 @@ export function useVoiceAgent({ patientId, consultationId }: UseVoiceAgentOption
           }
         },
       });
+
+      if (!completed && !accumulated) {
+        throw new Error("No response received from the clinical assistant.");
+      }
     },
-    [speakFallback, stopOutput],
+    [finalizeAssistantTurn, speakFallback, stopOutput],
   );
 
   const ask = useCallback(
@@ -182,6 +220,7 @@ export function useVoiceAgent({ patientId, consultationId }: UseVoiceAgentOption
 
       setError(null);
       setIsThinking(true);
+      setThinkingStage("Starting…");
 
       const doctorTurnId = crypto.randomUUID();
       setTurns((current) => [
@@ -202,21 +241,28 @@ export function useVoiceAgent({ patientId, consultationId }: UseVoiceAgentOption
         return null;
       } catch (err) {
         if ((err as Error).name !== "AbortError") {
-          setError((err as Error).message ?? "Voice agent request failed");
+          const message = (err as Error).message ?? "Voice agent request failed";
+          setError(message);
+          finalizeAssistantTurn(
+            assistantId,
+            "I couldn't generate a response. Please try again.",
+          );
         }
         return null;
       } finally {
         setIsThinking(false);
+        setThinkingStage(null);
         abortRef.current = null;
       }
     },
-    [ensureSession, processUtteranceStream, stopOutput],
+    [ensureSession, finalizeAssistantTurn, processUtteranceStream, stopOutput],
   );
 
   const askWithAudio = useCallback(
     async (blob: Blob, mimeType: string) => {
       setError(null);
       setIsThinking(true);
+      setThinkingStage("Transcribing audio…");
 
       const assistantId = crypto.randomUUID();
       assistantTurnIdRef.current = assistantId;
@@ -231,9 +277,13 @@ export function useVoiceAgent({ patientId, consultationId }: UseVoiceAgentOption
         abortRef.current = new AbortController();
         let transcript = "";
         let pendingAudio: { content: string; mime: string } | null = null;
+        let completed = false;
 
         await streamVoiceAudioUtterance(sid, blob, mimeType, {
           signal: abortRef.current.signal,
+          onStatus: (stage) => {
+            setThinkingStage(STATUS_LABELS[stage] ?? "Working on your question…");
+          },
           onTranscript: (text) => {
             transcript = text;
             setTurns((current) =>
@@ -256,8 +306,15 @@ export function useVoiceAgent({ patientId, consultationId }: UseVoiceAgentOption
           onAudio: (audio) => {
             pendingAudio = audio;
           },
-          onInterrupted: () => stopOutput(),
+          onInterrupted: () => {
+            finalizeAssistantTurn(
+              assistantId,
+              "Response interrupted. Ask again to continue.",
+            );
+            stopOutput({ notifyServer: false });
+          },
           onDone: (result) => {
+            completed = true;
             setTurns((current) =>
               current.map((turn) =>
                 turn.id === assistantId
@@ -285,22 +342,35 @@ export function useVoiceAgent({ patientId, consultationId }: UseVoiceAgentOption
               speakFallback(result.answer);
             }
           },
-          onError: (message) => setError(message),
+          onError: (message) => {
+            finalizeAssistantTurn(assistantId, message);
+            setError(message);
+          },
         });
+
+        if (!completed) {
+          throw new Error("No response received from the clinical assistant.");
+        }
 
         if (!transcript) {
           setError("Could not transcribe audio. Try again or type your question.");
         }
       } catch (err) {
         if ((err as Error).name !== "AbortError") {
-          setError((err as Error).message ?? "Voice upload failed");
+          const message = (err as Error).message ?? "Voice upload failed";
+          setError(message);
+          finalizeAssistantTurn(
+            assistantId,
+            "I couldn't generate a response. Please try again.",
+          );
         }
       } finally {
         setIsThinking(false);
+        setThinkingStage(null);
         abortRef.current = null;
       }
     },
-    [ensureSession, speakFallback, stopOutput],
+    [ensureSession, finalizeAssistantTurn, speakFallback, stopOutput],
   );
 
   const startListening = useCallback(async () => {
@@ -347,6 +417,7 @@ export function useVoiceAgent({ patientId, consultationId }: UseVoiceAgentOption
     turns,
     isStarting,
     isThinking,
+    thinkingStage,
     isSpeaking,
     isListening,
     briefingPreview,

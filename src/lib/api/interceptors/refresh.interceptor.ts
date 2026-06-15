@@ -1,10 +1,9 @@
 import type { AxiosError, AxiosInstance } from "axios";
 
-import { refreshAccessToken } from "@/features/auth/api/refresh.api";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useTokenStore } from "@/features/auth/store/token.store";
-import { clearSession } from "@/features/auth/utils/token-storage";
-import { enqueueTokenRefresh } from "@/lib/api/refresh-token-queue";
+import { refreshStoredSession } from "@/features/auth/utils/refresh-session";
+import { clearSession, readStoredSession } from "@/features/auth/utils/token-storage";
 import type { ApiErrorBody } from "@/lib/api/types/api-error.types";
 
 export function createRefreshInterceptor(client: AxiosInstance) {
@@ -19,7 +18,10 @@ export function createRefreshInterceptor(client: AxiosInstance) {
       return Promise.reject(error);
     }
 
-    const { refreshToken, actorType } = useTokenStore.getState();
+    const storedSession = readStoredSession();
+    const refreshToken =
+      storedSession.refreshToken ?? useTokenStore.getState().refreshToken;
+    const actorType = storedSession.actorType ?? useTokenStore.getState().actorType;
 
     if (!refreshToken || !actorType) {
       clearSession();
@@ -28,20 +30,21 @@ export function createRefreshInterceptor(client: AxiosInstance) {
     }
 
     try {
-      const tokens = await enqueueTokenRefresh(actorType, refreshToken, (token) =>
-        refreshAccessToken(token),
-      );
+      const refreshed = await refreshStoredSession(actorType, refreshToken);
+      if (!refreshed) {
+        throw new Error("Unable to refresh session");
+      }
 
-      useTokenStore.getState().setTokens({
-        accessToken: tokens.access_token,
-        refreshToken: tokens.refresh_token,
-      });
+      const accessToken = useTokenStore.getState().accessToken;
+      if (!accessToken) {
+        throw new Error("Missing refreshed access token");
+      }
 
       originalRequest.metadata = {
         ...originalRequest.metadata,
         _retry: true,
       };
-      originalRequest.headers.Authorization = `Bearer ${tokens.access_token}`;
+      originalRequest.headers.Authorization = `Bearer ${accessToken}`;
 
       return client(originalRequest);
     } catch (refreshError) {

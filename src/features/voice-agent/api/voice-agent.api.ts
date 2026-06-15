@@ -99,10 +99,12 @@ type StreamHandlers = {
   onToken: (token: string) => void;
   onDone: (result: VoiceUtteranceResponse) => void;
   onInterrupted?: () => void;
+  onStatus?: (stage: string) => void;
   onTranscript?: (text: string) => void;
   onAudio?: (audio: { content: string; mime: string }) => void;
   onError?: (message: string) => void;
   signal?: AbortSignal;
+  timeoutMs?: number;
 };
 
 async function consumeSseStream(
@@ -130,9 +132,13 @@ async function consumeSseStream(
         content?: string;
         mime?: string;
         message?: string;
+        stage?: string;
       } & Partial<VoiceUtteranceResponse>;
 
       switch (payload.type) {
+        case "status":
+          if (payload.stage) handlers.onStatus?.(payload.stage);
+          break;
         case "token":
           if (payload.content) handlers.onToken(payload.content);
           break;
@@ -169,29 +175,47 @@ export async function streamVoiceUtterance(
 ): Promise<void> {
   const baseUrl = apiClient.defaults.baseURL ?? "";
   const token = getAccessToken();
+  const timeoutMs = handlers.timeoutMs ?? 120_000;
+  const timeoutController = new AbortController();
+  const timeoutId = window.setTimeout(() => timeoutController.abort(), timeoutMs);
 
-  const response = await fetch(
-    `${baseUrl}/voice-agent/sessions/${sessionId}/utterance/stream`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  const abortController = new AbortController();
+  const onExternalAbort = () => abortController.abort();
+  handlers.signal?.addEventListener("abort", onExternalAbort, { once: true });
+  timeoutController.signal.addEventListener("abort", onExternalAbort, { once: true });
+
+  try {
+    const response = await fetch(
+      `${baseUrl}/voice-agent/sessions/${sessionId}/utterance/stream`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ utterance }),
+        signal: abortController.signal,
+        credentials: "include",
       },
-      body: JSON.stringify({ utterance }),
-      signal: handlers.signal,
-      credentials: "include",
-    },
-  );
+    );
 
-  if (!response.ok || !response.body) {
-    if (response.status === 401) {
-      throw new Error("Voice session expired. Please refresh the page and sign in again.");
+    if (!response.ok || !response.body) {
+      if (response.status === 401) {
+        throw new Error("Voice session expired. Please refresh the page and sign in again.");
+      }
+      throw new Error(`Streaming request failed (${response.status})`);
     }
-    throw new Error(`Streaming request failed (${response.status})`);
-  }
 
-  await consumeSseStream(response, handlers);
+    await consumeSseStream(response, handlers);
+  } catch (error) {
+    if (timeoutController.signal.aborted && !handlers.signal?.aborted) {
+      throw new Error("Voice assistant timed out. Please try a shorter question.");
+    }
+    throw error;
+  } finally {
+    handlers.signal?.removeEventListener("abort", onExternalAbort);
+    window.clearTimeout(timeoutId);
+  }
 }
 
 export async function streamVoiceAudioUtterance(

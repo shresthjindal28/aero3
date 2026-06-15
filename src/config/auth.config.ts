@@ -14,5 +14,5 @@ export const authConfig = {
     doctorAccessState: "airo_doctor_access_state",
   },
   refreshBufferMs: 5 * 60 * 1000,
-  cookieMaxAgeDays: 7,
+  cookieMaxAgeDays: 30,
 } as const;

@@ -4,15 +4,20 @@ import type { VerificationStatus } from "@/types/domain/enums";
 
 const isBrowser = typeof window !== "undefined";
 
+function cookieSuffix(): string {
+  const secure = window.location.protocol === "https:" ? "; Secure" : "";
+  return `; path=/; SameSite=Lax${secure}`;
+}
+
 function setCookie(name: string, value: string, maxAgeDays: number) {
   if (!isBrowser) return;
   const maxAge = maxAgeDays * 24 * 60 * 60;
-  document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${maxAge}; SameSite=Lax`;
+  document.cookie = `${name}=${encodeURIComponent(value)}; max-age=${maxAge}${cookieSuffix()}`;
 }
 
 function deleteCookie(name: string) {
   if (!isBrowser) return;
-  document.cookie = `${name}=; path=/; max-age=0; SameSite=Lax`;
+  document.cookie = `${name}=; max-age=0${cookieSuffix()}`;
 }
 
 export function persistSession(input: {

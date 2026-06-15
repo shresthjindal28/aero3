@@ -128,7 +128,7 @@ export function VoiceAgentPanel({
         {agent.isThinking ? (
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            Retrieving clinical memory…
+            {agent.thinkingStage ?? "Retrieving clinical memory…"}
           </div>
         ) : null}
         <div ref={bottomRef} />
