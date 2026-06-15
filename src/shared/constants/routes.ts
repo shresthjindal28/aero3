@@ -52,6 +52,7 @@ export const routes = {
     doctorDetail: (doctorId: string) => `/admin/doctors/${doctorId}`,
     verification: "/admin/verification",
     aiJobs: "/admin/ai-jobs",
+    auditLogs: "/admin/audit-logs",
     systemHealth: "/admin/system-health",
     settings: "/admin/settings",
     settingsProfile: "/admin/settings/profile",

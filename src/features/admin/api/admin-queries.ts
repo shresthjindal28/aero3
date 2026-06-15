@@ -7,4 +7,7 @@ export const adminQueries = {
   doctorsPending: () => ({
     queryKey: queryKeys.admin.doctorsPending,
   }),
+  auditLogs: (params: Record<string, unknown> = {}) => ({
+    queryKey: queryKeys.admin.auditLogs(params),
+  }),
 };

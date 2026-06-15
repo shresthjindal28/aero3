@@ -8,6 +8,8 @@ export const queryKeys = {
     me: ["admin", "me"] as const,
     doctors: ["admin", "doctors"] as const,
     doctorsPending: ["admin", "doctors", "pending"] as const,
+    auditLogs: (params: Record<string, unknown>) =>
+      ["admin", "audit-logs", params] as const,
   },
   patients: {
     all: ["patients"] as const,

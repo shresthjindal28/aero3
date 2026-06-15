@@ -3,6 +3,7 @@ import {
   FileText,
   LayoutDashboard,
   Mic,
+  ScrollText,
   Settings,
   Stethoscope,
   Users,
@@ -34,5 +35,6 @@ export const adminNavigation: NavItem[] = [
   { label: "Doctors", href: routes.admin.doctors, icon: BriefcaseMedical },
   { label: "Verification", href: routes.admin.verification, icon: Users },
   { label: "AI Jobs", href: routes.admin.aiJobs, icon: FileText },
+  { label: "Audit Logs", href: routes.admin.auditLogs, icon: ScrollText },
   { label: "Settings", href: routes.admin.settings, icon: Settings },
 ];
