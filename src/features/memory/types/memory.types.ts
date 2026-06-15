@@ -63,3 +63,14 @@ export type MemoryRetrievalRecord = {
   topScore: number | null;
   searchedAt: string;
 };
+
+export type ParsedMemoryProfile = {
+  conditions: string[];
+  symptoms: string[];
+  medications: string[];
+  diagnoses: string[];
+  recommendations: string[];
+  mostRecentConsultationDate: string | null;
+  narrativeSummary: string | null;
+  hasStructuredData: boolean;
+};

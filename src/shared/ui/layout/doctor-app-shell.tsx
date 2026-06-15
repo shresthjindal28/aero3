@@ -27,6 +27,7 @@ function isClinicalWorkspace(pathname: string): boolean {
   return (
     pathname.endsWith("/prescription") ||
     pathname.endsWith("/soap") ||
+    pathname.endsWith("/memory") ||
     /^\/sessions\/[^/]+/.test(pathname) ||
     /^\/prescriptions\/[^/]+$/.test(pathname)
   );
