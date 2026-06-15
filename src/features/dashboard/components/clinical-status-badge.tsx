@@ -2,10 +2,10 @@ import type { ConsultationStatus } from "@/types/domain/enums";
 import { cn } from "@/lib/utils/cn";
 
 const STATUS_STYLES: Record<ConsultationStatus, string> = {
-  active: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
-  scheduled: "bg-amber-500/15 text-amber-800 dark:text-amber-300",
-  completed: "bg-muted text-muted-foreground",
-  cancelled: "bg-destructive/10 text-destructive",
+  active: "border-border/60 bg-muted/40 text-foreground",
+  scheduled: "border-border/60 bg-muted/40 text-muted-foreground",
+  completed: "border-border/60 bg-muted/30 text-muted-foreground",
+  cancelled: "border-destructive/20 bg-destructive/5 text-destructive",
 };
 
 const STATUS_LABELS: Record<ConsultationStatus, string> = {
@@ -24,7 +24,7 @@ export function ClinicalStatusBadge({ status, className }: ClinicalStatusBadgePr
   return (
     <span
       className={cn(
-        "inline-flex shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium capitalize",
+        "inline-flex shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-medium capitalize",
         STATUS_STYLES[status],
         className,
       )}
