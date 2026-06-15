@@ -38,7 +38,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 ## Database (Supabase)
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. In **SQL Editor**, run **`supabase/schema.sql`** (full Airo clinical schema from `airo_schema.sql`).
+2. In **SQL Editor**, run **`supabase/schema.sql`** (full Aevomed clinical schema).
 3. Copy **Project URL**, **anon key**, and **service_role key** into `.env.local`.
 
 Tables include: `hospitals`, `departments`, `doctors`, `patients`, `consultations`, `soap_notes`, `reports`, `prescriptions`, `diagnoses`, `diagnostic_suggestions`, `ai_feedback`, `audit_logs`.

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -14,6 +15,7 @@ import {
   type LoginFormValues,
 } from "@/features/auth/schemas/login.schema";
 import type { ApiError } from "@/lib/api/types/api-error.types";
+import { routes } from "@/shared/constants/routes";
 import { useZodForm } from "@/shared/forms/use-zod-form";
 
 export function DoctorLoginForm() {
@@ -64,6 +66,14 @@ export function DoctorLoginForm() {
           />
         )}
       />
+      <div className="flex items-center justify-end">
+        <Link
+          href={routes.auth.doctorForgotPassword}
+          className="text-sm font-medium text-teal-800 underline decoration-teal-800/30 underline-offset-4 hover:text-teal-900 dark:text-teal-400 dark:hover:text-teal-300"
+        >
+          Forgot password?
+        </Link>
+      </div>
       <AuthSubmitButton loading={loginMutation.isPending} loadingText="Signing in…">
         Sign in
       </AuthSubmitButton>

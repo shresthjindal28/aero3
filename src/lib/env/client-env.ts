@@ -3,13 +3,13 @@ import { z } from "zod";
 const BUILD_FALLBACKS = {
   NEXT_PUBLIC_API_BASE_URL: "http://localhost:8000/api/v1",
   NEXT_PUBLIC_WS_BASE_URL: "ws://localhost:8000/api/v1/ws",
-  NEXT_PUBLIC_APP_NAME: "AIRO",
+  NEXT_PUBLIC_APP_NAME: "Aevomed",
 } as const;
 
 const clientEnvSchema = z.object({
   NEXT_PUBLIC_API_BASE_URL: z.string().url(),
   NEXT_PUBLIC_WS_BASE_URL: z.string().min(1),
-  NEXT_PUBLIC_APP_NAME: z.string().default("AIRO"),
+  NEXT_PUBLIC_APP_NAME: z.string().default("Aevomed"),
 });
 
 function resolveClientEnv() {

@@ -56,7 +56,7 @@ export function PatientPrescriptionsPage({ patientId }: PatientPrescriptionsPage
       patientName: patient.full_name,
       doctorName: doctor.full_name,
       doctorRegistration: doctor.qualification ?? "",
-      hospitalName: doctor.hospital_name ?? "AIRO Clinical",
+      hospitalName: doctor.hospital_name ?? "Aevomed Clinical",
       consultationLabel: item.chief_complaint ?? "Consultation",
     });
   };

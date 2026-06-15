@@ -114,7 +114,7 @@ export function MemoryWorkspace({ patientId }: MemoryWorkspaceProps) {
         <p className="text-sm text-muted-foreground">Chart summary</p>
         <h1 className="text-2xl font-semibold tracking-tight">{patient.full_name}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          A living summary of what AIRO remembers from this patient&apos;s care
+          A living summary of what Aevomed remembers from this patient&apos;s care
         </p>
       </header>
 

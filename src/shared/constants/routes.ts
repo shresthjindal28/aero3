@@ -3,6 +3,7 @@ export const routes = {
   auth: {
     doctorLogin: "/doctor/login",
     doctorSignup: "/doctor/signup",
+    doctorForgotPassword: "/doctor/forgot-password",
     doctorOnboarding: "/doctor/onboarding",
     doctorPendingApproval: "/doctor/pending-approval",
   },

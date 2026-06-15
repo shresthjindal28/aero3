@@ -29,7 +29,7 @@ export function NotificationCenter() {
 
       {items.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border/60 p-8 text-center text-sm text-muted-foreground">
-          No notifications yet. You&apos;ll see updates here as AIRO processes your
+          No notifications yet. You&apos;ll see updates here as Aevomed processes your
           clinical workflow.
         </div>
       ) : (

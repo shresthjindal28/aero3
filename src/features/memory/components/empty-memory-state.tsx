@@ -18,8 +18,8 @@ export function EmptyMemoryState({ patientId, patientName }: EmptyMemoryStatePro
       <h3 className="text-base font-medium">No chart summary yet</h3>
       <p className="mt-2 max-w-md text-sm text-muted-foreground">
         {patientName
-          ? `AIRO has not recorded any memory for ${patientName} yet.`
-          : "AIRO has not recorded any memory for this patient yet."}{" "}
+          ? `Aevomed has not recorded any memory for ${patientName} yet.`
+          : "Aevomed has not recorded any memory for this patient yet."}{" "}
         Memory builds automatically as you complete consultations, add notes, and
         generate clinical summaries.
       </p>

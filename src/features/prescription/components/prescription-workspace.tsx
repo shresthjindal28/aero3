@@ -117,7 +117,7 @@ export function PrescriptionWorkspace({ consultationId }: PrescriptionWorkspaceP
       patientName: patient.full_name,
       doctorName: doctor.full_name,
       doctorRegistration: doctor.qualification ?? "",
-      hospitalName: doctor.hospital_name ?? "AIRO Clinical",
+      hospitalName: doctor.hospital_name ?? "Aevomed Clinical",
       consultationLabel,
     });
   };
@@ -130,7 +130,7 @@ export function PrescriptionWorkspace({ consultationId }: PrescriptionWorkspaceP
       patientName: patient.full_name,
       doctorName: doctor.full_name,
       doctorRegistration: doctor.qualification ?? "",
-      hospitalName: doctor.hospital_name ?? "AIRO Clinical",
+      hospitalName: doctor.hospital_name ?? "Aevomed Clinical",
       consultationLabel,
       autoPrint: true,
     });
