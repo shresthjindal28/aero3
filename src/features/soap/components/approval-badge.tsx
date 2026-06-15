@@ -1,7 +1,6 @@
 import { CheckCircle2, FileEdit } from "lucide-react";
 
 import type { SoapNote } from "@/features/soap/types/soap.types";
-import { formatDateTime } from "@/lib/utils/date";
 import { cn } from "@/lib/utils/cn";
 
 type ApprovalBadgeProps = {
@@ -12,25 +11,20 @@ export function ApprovalBadge({ soap }: ApprovalBadgeProps) {
   const isApproved = Boolean(soap?.approved_by_doctor);
 
   return (
-    <div
+    <span
       className={cn(
-        "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium",
+        "inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium",
         isApproved
-          ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
-          : "border-amber-500/30 bg-amber-500/10 text-amber-400",
+          ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+          : "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400",
       )}
     >
       {isApproved ? (
-        <CheckCircle2 className="h-3.5 w-3.5" />
+        <CheckCircle2 className="h-3 w-3" />
       ) : (
-        <FileEdit className="h-3.5 w-3.5" />
+        <FileEdit className="h-3 w-3" />
       )}
-      <span>{isApproved ? "Approved" : "Draft"}</span>
-      {isApproved && soap?.approved_at ? (
-        <span className="text-muted-foreground">
-          · {formatDateTime(soap.approved_at)}
-        </span>
-      ) : null}
-    </div>
+      {isApproved ? "Approved" : "Draft"}
+    </span>
   );
 }

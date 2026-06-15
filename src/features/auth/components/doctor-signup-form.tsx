@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { doctorLogin } from "@/features/auth/api/doctor-auth.api";
 import { AuthFormField } from "@/features/auth/components/auth-form-field";
 import { AuthInput } from "@/features/auth/components/auth-input";
+import { AuthPasswordInput } from "@/features/auth/components/auth-password-input";
 import { AuthSubmitButton } from "@/features/auth/components/auth-submit-button";
 import { useDoctorSignup } from "@/features/auth/hooks/use-doctor-auth";
 import { useAuthStore } from "@/features/auth/store/auth.store";
@@ -106,8 +107,7 @@ export function DoctorSignupForm() {
             label="Password"
             description="Minimum 8 characters"
             render={({ field, id }) => (
-              <AuthInput
-                type="password"
+              <AuthPasswordInput
                 autoComplete="new-password"
                 placeholder="Create a secure password"
                 id={id}

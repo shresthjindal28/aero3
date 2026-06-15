@@ -12,6 +12,7 @@ import {
 } from "@/features/auth/api/doctor-auth.api";
 import { AuthFormField } from "@/features/auth/components/auth-form-field";
 import { AuthInput } from "@/features/auth/components/auth-input";
+import { AuthPasswordInput } from "@/features/auth/components/auth-password-input";
 import { AuthSubmitButton } from "@/features/auth/components/auth-submit-button";
 import {
   forgotPasswordEmailSchema,
@@ -217,8 +218,7 @@ export function ForgotPasswordForm() {
         name="new_password"
         label="New password"
         render={({ field, id }) => (
-          <AuthInput
-            type="password"
+          <AuthPasswordInput
             autoComplete="new-password"
             placeholder="At least 8 characters"
             id={id}
@@ -231,8 +231,7 @@ export function ForgotPasswordForm() {
         name="confirm_password"
         label="Confirm password"
         render={({ field, id }) => (
-          <AuthInput
-            type="password"
+          <AuthPasswordInput
             autoComplete="new-password"
             placeholder="Repeat your password"
             id={id}

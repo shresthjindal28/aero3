@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import { AuthFormField } from "@/features/auth/components/auth-form-field";
 import { AuthInput } from "@/features/auth/components/auth-input";
+import { AuthPasswordInput } from "@/features/auth/components/auth-password-input";
 import { AuthSubmitButton } from "@/features/auth/components/auth-submit-button";
 import { useDoctorLogin } from "@/features/auth/hooks/use-doctor-auth";
 import { seedDoctorPostAuthCacheFromLogin } from "@/features/auth/utils/doctor-route-resolver";
@@ -57,8 +58,7 @@ export function DoctorLoginForm() {
         name="password"
         label="Password"
         render={({ field, id }) => (
-          <AuthInput
-            type="password"
+          <AuthPasswordInput
             autoComplete="current-password"
             placeholder="Enter your password"
             id={id}
