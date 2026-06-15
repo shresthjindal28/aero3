@@ -2,12 +2,7 @@
 
 import { TranscriptPanel } from "@/features/soap/components/transcript-panel";
 import type { ConsultationTranscript } from "@/features/soap/types/transcript.types";
-import {
-  Sheet,
-  SheetContent,
-  SheetOverlay,
-  SheetPortal,
-} from "@/shared/ui/primitives/sheet";
+import { Sheet, SheetContent, SheetTitle } from "@/shared/ui/primitives/sheet";
 
 type TranscriptDrawerProps = {
   open: boolean;
@@ -28,21 +23,19 @@ export function TranscriptDrawer({
 }: TranscriptDrawerProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetPortal>
-        <SheetOverlay />
-        <SheetContent side="right" className="w-full max-w-lg p-0">
-          <TranscriptPanel
-            transcript={transcript}
-            isLoading={isLoading}
-            isMissing={isMissing}
-            collapsed={false}
-            expanded
-            onToggleCollapsed={() => onOpenChange(false)}
-            onToggleExpanded={() => undefined}
-            onRetry={onRetry}
-          />
-        </SheetContent>
-      </SheetPortal>
+      <SheetContent side="right" className="w-full max-w-lg p-0">
+        <SheetTitle className="sr-only">Consultation transcript</SheetTitle>
+        <TranscriptPanel
+          transcript={transcript}
+          isLoading={isLoading}
+          isMissing={isMissing}
+          collapsed={false}
+          expanded
+          onToggleCollapsed={() => onOpenChange(false)}
+          onToggleExpanded={() => undefined}
+          onRetry={onRetry}
+        />
+      </SheetContent>
     </Sheet>
   );
 }

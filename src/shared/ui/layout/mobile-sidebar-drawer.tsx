@@ -3,7 +3,7 @@
 import type { NavItem } from "@/config/navigation.config";
 import { useShellStore } from "@/shared/store/shell.store";
 import { Sidebar } from "@/shared/ui/layout/sidebar";
-import { Sheet, SheetContent } from "@/shared/ui/primitives/sheet";
+import { Sheet, SheetContent, SheetTitle } from "@/shared/ui/primitives/sheet";
 
 type MobileSidebarDrawerProps = {
   brand?: string;
@@ -29,6 +29,7 @@ export function MobileSidebarDrawer({
   return (
     <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
       <SheetContent side="left" className="w-72 p-0">
+        <SheetTitle className="sr-only">Navigation</SheetTitle>
         <Sidebar
           brand={brand}
           subtitle={subtitle}

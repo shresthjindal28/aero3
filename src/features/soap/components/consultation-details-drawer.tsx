@@ -17,8 +17,8 @@ import { routes } from "@/shared/constants/routes";
 import {
   Sheet,
   SheetContent,
-  SheetOverlay,
-  SheetPortal,
+  SheetDescription,
+  SheetTitle,
 } from "@/shared/ui/primitives/sheet";
 
 type ConsultationDetailsDrawerProps = {
@@ -49,79 +49,76 @@ export function ConsultationDetailsDrawer({
 }: ConsultationDetailsDrawerProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetPortal>
-        <SheetOverlay />
-        <SheetContent side="left" className="w-full max-w-sm sm:max-w-md">
-          <div className="flex h-full flex-col overflow-y-auto p-6 pt-12">
-            <h2 className="text-lg font-semibold">Consultation details</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Full context for this visit
-            </p>
+      <SheetContent side="left" className="w-full max-w-sm sm:max-w-md">
+        <div className="flex h-full flex-col overflow-y-auto p-6 pt-12">
+          <SheetTitle>Consultation details</SheetTitle>
+          <SheetDescription className="mt-1">
+            Full context for this visit
+          </SheetDescription>
 
-            <div className="mt-6">
-              <DetailRow label="Patient" value={patient.full_name} />
-              {patient.phone ? (
-                <DetailRow label="Phone" value={patient.phone} />
-              ) : null}
-              <DetailRow label="Age" value={calculateAge(patient.date_of_birth)} />
-              <DetailRow label="Gender" value={formatGender(patient.gender)} />
-              <DetailRow
-                label="Chief complaint"
-                value={consultation.chief_complaint ?? "—"}
-              />
-              <DetailRow
-                label="Duration"
-                value={formatDuration(consultation.duration_seconds)}
-              />
-              <DetailRow
-                label="Started"
-                value={
-                  consultation.started_at
-                    ? formatDateTime(consultation.started_at)
-                    : "Not started"
-                }
-              />
-              <DetailRow
-                label="Ended"
-                value={
-                  consultation.ended_at
-                    ? formatDateTime(consultation.ended_at)
-                    : "Not ended"
-                }
-              />
-              <div className="space-y-2 border-b border-border/40 py-3">
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Consultation status
-                </p>
-                <ConsultationStatusBadge status={consultation.status} />
-              </div>
-              <div className="space-y-2 py-3">
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  SOAP approval
-                </p>
-                <ApprovalBadge soap={soap} />
-                {soap?.approved_by_doctor ? (
-                  <p className="text-xs text-muted-foreground">
-                    Approved by doctor
-                    {soap.approved_at ? ` · ${formatDateTime(soap.approved_at)}` : ""}
-                  </p>
-                ) : (
-                  <p className="text-xs text-muted-foreground">
-                    Pending doctor approval
-                  </p>
-                )}
-              </div>
+          <div className="mt-6">
+            <DetailRow label="Patient" value={patient.full_name} />
+            {patient.phone ? (
+              <DetailRow label="Phone" value={patient.phone} />
+            ) : null}
+            <DetailRow label="Age" value={calculateAge(patient.date_of_birth)} />
+            <DetailRow label="Gender" value={formatGender(patient.gender)} />
+            <DetailRow
+              label="Chief complaint"
+              value={consultation.chief_complaint ?? "—"}
+            />
+            <DetailRow
+              label="Duration"
+              value={formatDuration(consultation.duration_seconds)}
+            />
+            <DetailRow
+              label="Started"
+              value={
+                consultation.started_at
+                  ? formatDateTime(consultation.started_at)
+                  : "Not started"
+              }
+            />
+            <DetailRow
+              label="Ended"
+              value={
+                consultation.ended_at
+                  ? formatDateTime(consultation.ended_at)
+                  : "Not ended"
+              }
+            />
+            <div className="space-y-2 border-b border-border/40 py-3">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Consultation status
+              </p>
+              <ConsultationStatusBadge status={consultation.status} />
             </div>
-
-            <Link
-              href={routes.app.consultationDetail(consultation.id)}
-              className="mt-6 text-sm text-primary hover:underline"
-            >
-              View full consultation page
-            </Link>
+            <div className="space-y-2 py-3">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                SOAP approval
+              </p>
+              <ApprovalBadge soap={soap} />
+              {soap?.approved_by_doctor ? (
+                <p className="text-xs text-muted-foreground">
+                  Approved by doctor
+                  {soap.approved_at ? ` · ${formatDateTime(soap.approved_at)}` : ""}
+                </p>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  Pending doctor approval
+                </p>
+              )}
+            </div>
           </div>
-        </SheetContent>
-      </SheetPortal>
+
+          <Link
+            href={routes.app.consultationDetail(consultation.id)}
+            className="mt-6 text-sm text-primary hover:underline"
+          >
+            View full consultation page
+          </Link>
+        </div>
+      </SheetContent>
     </Sheet>
   );
 }

@@ -9,7 +9,6 @@ import { cn } from "@/lib/utils/cn";
 export const Sheet = DialogPrimitive.Root;
 export const SheetTrigger = DialogPrimitive.Trigger;
 export const SheetClose = DialogPrimitive.Close;
-export const SheetPortal = DialogPrimitive.Portal;
 
 export const SheetTitle = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Title>,
@@ -22,6 +21,18 @@ export const SheetTitle = React.forwardRef<
   />
 ));
 SheetTitle.displayName = DialogPrimitive.Title.displayName;
+
+export const SheetDescription = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Description>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>
+>(({ className, ...props }, ref) => (
+  <DialogPrimitive.Description
+    ref={ref}
+    className={cn("text-sm text-muted-foreground", className)}
+    {...props}
+  />
+));
+SheetDescription.displayName = DialogPrimitive.Description.displayName;
 
 export const SheetOverlay = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Overlay>,
@@ -41,7 +52,7 @@ export const SheetContent = React.forwardRef<
     side?: "left" | "right";
   }
 >(({ side = "left", className, children, ...props }, ref) => (
-  <SheetPortal>
+  <DialogPrimitive.Portal>
     <SheetOverlay />
     <DialogPrimitive.Content
       ref={ref}
@@ -58,6 +69,6 @@ export const SheetContent = React.forwardRef<
         <span className="sr-only">Close</span>
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>
-  </SheetPortal>
+  </DialogPrimitive.Portal>
 ));
 SheetContent.displayName = DialogPrimitive.Content.displayName;
