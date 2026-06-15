@@ -7,12 +7,6 @@ export const rolesConfig = {
     defaultRoute: "/dashboard",
     loginRoute: "/doctor/login",
   },
-  admin: {
-    id: "admin" as const satisfies ActorType,
-    label: "Admin",
-    defaultRoute: "/admin/dashboard",
-    loginRoute: "/admin/login",
-  },
   receptionist: {
     id: "receptionist" as const satisfies ActorType,
     label: "Receptionist",

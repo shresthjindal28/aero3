@@ -20,11 +20,3 @@ export type DoctorProfile = {
   phone_verified: boolean;
   is_active: boolean;
 };
-
-export type AdminProfile = {
-  id: string;
-  full_name: string;
-  email: string;
-  role: string;
-  is_active: boolean;
-};

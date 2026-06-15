@@ -9,10 +9,6 @@ export type SignupDoctorInput = LoginCredentials & {
   full_name: string;
 };
 
-export type SignupAdminInput = LoginCredentials & {
-  full_name: string;
-};
-
 export type AuthActor = {
   actorType: ActorType;
 };

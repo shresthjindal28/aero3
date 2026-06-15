@@ -1,10 +1,9 @@
 import { rolesConfig } from "@/config/roles.config";
-import type { ActorType } from "@/types/domain/actor.types";
 
-export function getDefaultRouteForActor(actorType: ActorType): string {
+export function getDefaultRouteForActor(
+  actorType: "doctor" | "receptionist" = "doctor",
+): string {
   switch (actorType) {
-    case "admin":
-      return rolesConfig.admin.defaultRoute;
     case "receptionist":
       return rolesConfig.receptionist.defaultRoute;
     case "doctor":
@@ -13,10 +12,10 @@ export function getDefaultRouteForActor(actorType: ActorType): string {
   }
 }
 
-export function getLoginRouteForActor(actorType: ActorType): string {
+export function getLoginRouteForActor(
+  actorType: "doctor" | "receptionist" = "doctor",
+): string {
   switch (actorType) {
-    case "admin":
-      return rolesConfig.admin.loginRoute;
     case "receptionist":
       return rolesConfig.receptionist.loginRoute;
     case "doctor":

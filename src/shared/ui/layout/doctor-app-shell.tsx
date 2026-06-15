@@ -103,10 +103,7 @@ export function DoctorAppShell({ children }: DoctorAppShellProps) {
             breadcrumbs={breadcrumbs}
             showBreadcrumbs={!isClinicalWorkspace(pathname)}
             showThemeToggle={!isClinicalWorkspace(pathname)}
-            user={{
-              ...shellUser,
-              actorType: "doctor",
-            }}
+            user={shellUser}
             onLogout={logout}
             onSearchClick={commandPalette.openPalette}
           />

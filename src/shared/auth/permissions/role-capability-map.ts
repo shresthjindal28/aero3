@@ -20,16 +20,6 @@ export const roleCapabilityMap: Record<ActorType, Capability[]> = {
     "settings:write",
     "notifications:read",
   ],
-  admin: [
-    "dashboard:view",
-    "settings:read",
-    "settings:write",
-    "notifications:read",
-    "admin:access",
-    "admin:doctors:read",
-    "admin:doctors:approve",
-    "admin:ai-jobs:retry",
-  ],
   receptionist: [
     "dashboard:view",
     "patients:read",

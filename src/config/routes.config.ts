@@ -31,11 +31,6 @@ export const protectedRoutes: RouteAccess[] = [
   {
     path: "/settings",
     capabilities: ["settings:read"],
-    actors: ["doctor", "admin", "receptionist"],
-  },
-  {
-    path: "/admin",
-    capabilities: ["admin:access"],
-    actors: ["admin"],
+    actors: ["doctor", "receptionist"],
   },
 ];

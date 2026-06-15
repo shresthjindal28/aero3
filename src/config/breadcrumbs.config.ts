@@ -30,14 +30,6 @@ export const breadcrumbRoutes: BreadcrumbRouteMap = {
     { label: "Settings", href: routes.app.settings },
     { label: "Security" },
   ],
-  [routes.admin.dashboard]: [{ label: "Dashboard" }],
-  [routes.admin.doctors]: [{ label: "Doctors" }],
-  [routes.admin.aiJobs]: [{ label: "AI Jobs" }],
-  [routes.admin.settings]: [{ label: "Settings" }],
-  [routes.admin.settingsProfile]: [
-    { label: "Settings", href: routes.admin.settings },
-    { label: "Profile" },
-  ],
 };
 
 function formatSegmentLabel(segment: string, parentSegment?: string): string {

@@ -18,7 +18,6 @@ type AppHeaderProps = {
     name: string;
     email: string;
     avatarUrl?: string | null;
-    actorType: "doctor" | "admin";
   };
   onLogout: () => void;
   onSearchClick?: () => void;
@@ -92,7 +91,6 @@ export function AppHeader({
           name={user.name}
           email={user.email}
           avatarUrl={user.avatarUrl}
-          actorType={user.actorType}
           onLogout={onLogout}
         />
       </div>

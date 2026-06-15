@@ -4,13 +4,6 @@ export const queryKeys = {
     onboarding: ["doctor", "onboarding"] as const,
     documents: ["doctor", "documents"] as const,
   },
-  admin: {
-    me: ["admin", "me"] as const,
-    doctors: ["admin", "doctors"] as const,
-    doctorsPending: ["admin", "doctors", "pending"] as const,
-    auditLogs: (params: Record<string, unknown>) =>
-      ["admin", "audit-logs", params] as const,
-  },
   patients: {
     all: ["patients"] as const,
     list: (filters?: Record<string, unknown>) =>
@@ -60,7 +53,6 @@ export const queryKeys = {
   },
   dashboard: {
     doctor: ["dashboard", "doctor"] as const,
-    admin: ["dashboard", "admin"] as const,
   },
   aiJobs: {
     byConsultation: (consultationId: string) =>

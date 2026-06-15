@@ -29,7 +29,7 @@ export function createRefreshInterceptor(client: AxiosInstance) {
 
     try {
       const tokens = await enqueueTokenRefresh(actorType, refreshToken, (token) =>
-        refreshAccessToken(actorType, token),
+        refreshAccessToken(token),
       );
 
       useTokenStore.getState().setTokens({

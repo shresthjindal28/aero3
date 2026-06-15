@@ -20,31 +20,15 @@ type UserMenuProps = {
   name: string;
   email: string;
   avatarUrl?: string | null;
-  actorType: "doctor" | "admin";
   onLogout: () => void;
 };
 
-export function UserMenu({
-  name,
-  email,
-  avatarUrl,
-  actorType,
-  onLogout,
-}: UserMenuProps) {
+export function UserMenu({ name, email, avatarUrl, onLogout }: UserMenuProps) {
   const router = useRouter();
-
-  const profileRoute =
-    actorType === "admin"
-      ? routes.admin.settingsProfile
-      : routes.app.settingsProfile;
-
-  const securityRoute = routes.app.settingsSecurity;
 
   const handleLogout = () => {
     onLogout();
-    router.replace(
-      actorType === "admin" ? routes.auth.adminLogin : routes.auth.doctorLogin,
-    );
+    router.replace(routes.auth.doctorLogin);
   };
 
   return (
@@ -64,19 +48,17 @@ export function UserMenu({
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href={profileRoute} className="cursor-pointer">
+          <Link href={routes.app.settingsProfile} className="cursor-pointer">
             <User className="h-4 w-4" />
             Profile
           </Link>
         </DropdownMenuItem>
-        {actorType === "doctor" ? (
-          <DropdownMenuItem asChild>
-            <Link href={securityRoute} className="cursor-pointer">
-              <Shield className="h-4 w-4" />
-              Security
-            </Link>
-          </DropdownMenuItem>
-        ) : null}
+        <DropdownMenuItem asChild>
+          <Link href={routes.app.settingsSecurity} className="cursor-pointer">
+            <Shield className="h-4 w-4" />
+            Security
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive">
           <LogOut className="h-4 w-4" />

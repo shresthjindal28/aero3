@@ -125,7 +125,7 @@ export function readStoredSession(): {
     accessToken: localStorage.getItem(authConfig.storageKeys.accessToken),
     refreshToken: localStorage.getItem(authConfig.storageKeys.refreshToken),
     actorType:
-      actorType === "doctor" || actorType === "admin" || actorType === "receptionist"
+      actorType === "doctor" || actorType === "receptionist"
         ? actorType
         : null,
   };

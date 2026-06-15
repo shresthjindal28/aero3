@@ -25,11 +25,7 @@ export function RequireAuth({
     if (!isHydrated) return;
 
     if (!isAuthenticated || currentActor !== actorType) {
-      const loginRoute =
-        actorType === "admin"
-          ? rolesConfig.admin.loginRoute
-          : rolesConfig.doctor.loginRoute;
-      router.replace(loginRoute);
+      router.replace(rolesConfig.doctor.loginRoute);
     }
   }, [actorType, currentActor, isAuthenticated, isHydrated, router]);
 

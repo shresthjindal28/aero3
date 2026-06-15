@@ -16,7 +16,6 @@ const lora = Lora({
 });
 import "@/styles/globals.css";
 import "@/styles/themes/doctor.css";
-import "@/styles/themes/admin.css";
 import "@/styles/tokens/colors.css";
 
 export const metadata: Metadata = {

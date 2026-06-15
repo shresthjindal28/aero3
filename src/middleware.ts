@@ -13,7 +13,7 @@ import type { ActorType } from "@/types/domain/actor.types";
 
 function getActorTypeFromRequest(request: NextRequest): ActorType | null {
   const actorType = request.cookies.get(authConfig.cookieKeys.actorType)?.value;
-  if (actorType === "doctor" || actorType === "admin" || actorType === "receptionist") {
+  if (actorType === "doctor" || actorType === "receptionist") {
     return actorType;
   }
   return null;
@@ -33,12 +33,6 @@ export function middleware(request: NextRequest) {
   const actorType = getActorTypeFromRequest(request);
 
   if (isAuthRoute(pathname) && isAuthenticated && actorType) {
-    if (actorType === "admin") {
-      return NextResponse.redirect(
-        new URL(rolesConfig.admin.defaultRoute, request.url),
-      );
-    }
-
     const accessState = getDoctorAccessState(request);
     const doctorRoute =
       accessState === "approved"
@@ -55,21 +49,16 @@ export function middleware(request: NextRequest) {
   }
 
   if (!isAuthenticated) {
-    const requiredActor = getActorTypeForPath(pathname);
-    const loginRoute =
-      requiredActor === "admin"
-        ? rolesConfig.admin.loginRoute
-        : rolesConfig.doctor.loginRoute;
-    return NextResponse.redirect(new URL(loginRoute, request.url));
+    return NextResponse.redirect(
+      new URL(rolesConfig.doctor.loginRoute, request.url),
+    );
   }
 
   const requiredActor = getActorTypeForPath(pathname);
   if (requiredActor && actorType && requiredActor !== actorType) {
-    const loginRoute =
-      actorType === "admin"
-        ? rolesConfig.admin.loginRoute
-        : rolesConfig.doctor.loginRoute;
-    return NextResponse.redirect(new URL(loginRoute, request.url));
+    return NextResponse.redirect(
+      new URL(rolesConfig.doctor.loginRoute, request.url),
+    );
   }
 
   if (
