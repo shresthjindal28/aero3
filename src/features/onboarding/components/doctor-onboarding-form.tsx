@@ -83,6 +83,10 @@ export function DoctorOnboardingForm() {
   const [step, setStep] = useState<Step>("profile");
   const [profilePictureName, setProfilePictureName] = useState<string | null>(null);
   const [uploadingProfilePicture, setUploadingProfilePicture] = useState(false);
+  const [pendingDocuments, setPendingDocuments] = useState<
+    Partial<Record<DoctorDocumentType, File>>
+  >({});
+  const [uploadingDocuments, setUploadingDocuments] = useState(false);
   const { data: doctor } = useDoctorMe();
   const { data: status } = useOnboardingStatus();
   const { data: documents = [] } = useDoctorDocuments();
@@ -194,19 +198,52 @@ export function DoctorOnboardingForm() {
     }
   });
 
-  const handleDocumentUpload = async (
-    documentType: DoctorDocumentType,
-    file: File | null,
-  ) => {
+  const handleDocumentSelect = (documentType: DoctorDocumentType, file: File | null) => {
     if (!file) return;
 
-    const existing = uploadedByType.get(documentType);
-    if (existing) {
-      await deleteDocument.mutateAsync(existing.id);
+    setPendingDocuments((current) => ({
+      ...current,
+      [documentType]: file,
+    }));
+  };
+
+  const isDocumentReady = (documentType: DoctorDocumentType) =>
+    uploadedByType.has(documentType) || Boolean(pendingDocuments[documentType]);
+
+  const handleDocumentsContinue = async () => {
+    const missing = REQUIRED_DOCUMENTS.filter((item) => !isDocumentReady(item.type));
+    if (missing.length > 0) {
+      toast.error("Please select all required documents before continuing");
+      return;
     }
 
-    await uploadDocument.mutateAsync({ file, documentType });
-    toast.success("Document uploaded");
+    const toUpload = REQUIRED_DOCUMENTS.filter((item) => pendingDocuments[item.type]);
+    if (toUpload.length === 0) {
+      setStep("review");
+      return;
+    }
+
+    try {
+      setUploadingDocuments(true);
+      await Promise.all(
+        toUpload.map(async (item) => {
+          const file = pendingDocuments[item.type]!;
+          const existing = uploadedByType.get(item.type);
+          if (existing) {
+            await deleteDocument.mutateAsync(existing.id);
+          }
+          await uploadDocument.mutateAsync({ file, documentType: item.type });
+        }),
+      );
+      setPendingDocuments({});
+      toast.success("All documents uploaded");
+      setStep("review");
+    } catch (error) {
+      const apiError = error as unknown as ApiError;
+      toast.error(apiError.message ?? "Unable to upload documents");
+    } finally {
+      setUploadingDocuments(false);
+    }
   };
 
   return (
@@ -426,6 +463,7 @@ export function DoctorOnboardingForm() {
             <div className="space-y-4">
               {REQUIRED_DOCUMENTS.map((item) => {
                 const uploaded = uploadedByType.get(item.type);
+                const pendingFile = pendingDocuments[item.type];
                 return (
                   <div
                     key={item.type}
@@ -437,7 +475,11 @@ export function DoctorOnboardingForm() {
                           {item.label} <span className="text-destructive">*</span>
                         </p>
                         <p className="text-sm text-muted-foreground">{item.description}</p>
-                        {uploaded ? (
+                        {pendingFile ? (
+                          <p className="mt-1 text-sm text-emerald-600">
+                            Selected: {pendingFile.name}
+                          </p>
+                        ) : uploaded ? (
                           <p className="mt-1 text-sm text-emerald-600">
                             Uploaded: {uploaded.file_name}
                           </p>
@@ -446,11 +488,10 @@ export function DoctorOnboardingForm() {
                       <Input
                         type="file"
                         accept=".pdf,.png,.jpg,.jpeg,.webp"
-                        required={!uploaded}
-                        disabled={uploadDocument.isPending}
+                        disabled={uploadingDocuments}
                         onChange={(event) => {
                           const file = event.target.files?.[0] ?? null;
-                          void handleDocumentUpload(item.type, file);
+                          handleDocumentSelect(item.type, file);
                           event.target.value = "";
                         }}
                       />
@@ -465,13 +506,15 @@ export function DoctorOnboardingForm() {
             <Button type="button" variant="outline" onClick={() => setStep("credentials")}>
               Back
             </Button>
-            <Button
+            <LoadingButton
               type="button"
-              onClick={() => setStep("review")}
-              disabled={REQUIRED_DOCUMENTS.some((item) => !uploadedByType.has(item.type))}
+              onClick={() => void handleDocumentsContinue()}
+              loading={uploadingDocuments}
+              loadingText="Uploading documents..."
+              disabled={REQUIRED_DOCUMENTS.some((item) => !isDocumentReady(item.type))}
             >
               Continue
-            </Button>
+            </LoadingButton>
           </div>
         </div>
       ) : null}
