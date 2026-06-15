@@ -5,7 +5,7 @@ import type {
 } from "@/features/auth/types/auth.types";
 import { apiClient } from "@/lib/api/client";
 import { authClient } from "@/lib/api/auth-client";
-import type { TokenResponse } from "@/lib/api/types/api-response.types";
+import type { DoctorLoginResponse, TokenResponse } from "@/lib/api/types/api-response.types";
 
 export async function doctorSignup(
   payload: SignupDoctorInput,
@@ -16,8 +16,8 @@ export async function doctorSignup(
 
 export async function doctorLogin(
   payload: LoginCredentials,
-): Promise<TokenResponse> {
-  const { data } = await apiClient.post<TokenResponse>("/doctors/login", payload);
+): Promise<DoctorLoginResponse> {
+  const { data } = await apiClient.post<DoctorLoginResponse>("/doctors/login", payload);
   return data;
 }
 

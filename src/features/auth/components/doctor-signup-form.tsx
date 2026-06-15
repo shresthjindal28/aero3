@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { doctorLogin } from "@/features/auth/api/doctor-auth.api";
@@ -10,7 +11,7 @@ import { AuthSubmitButton } from "@/features/auth/components/auth-submit-button"
 import { useDoctorSignup } from "@/features/auth/hooks/use-doctor-auth";
 import { useAuthStore } from "@/features/auth/store/auth.store";
 import { useTokenStore } from "@/features/auth/store/token.store";
-import { resolveDoctorPostAuthRoute } from "@/features/auth/utils/doctor-route-resolver";
+import { seedDoctorPostAuthCacheFromLogin } from "@/features/auth/utils/doctor-route-resolver";
 import {
   doctorSignupSchema,
   type DoctorSignupFormValues,
@@ -20,6 +21,7 @@ import { useZodForm } from "@/shared/forms/use-zod-form";
 
 export function DoctorSignupForm() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const signupMutation = useDoctorSignup();
   const form = useZodForm<DoctorSignupFormValues>(doctorSignupSchema, {
     defaultValues: {
@@ -33,20 +35,24 @@ export function DoctorSignupForm() {
     try {
       await signupMutation.mutateAsync(values);
 
-      const tokens = await doctorLogin({
+      const login = await doctorLogin({
         email: values.email,
         password: values.password,
       });
 
       useTokenStore.getState().setTokens({
-        accessToken: tokens.access_token,
-        refreshToken: tokens.refresh_token,
+        accessToken: login.access_token,
+        refreshToken: login.refresh_token,
         actorType: "doctor",
       });
       useAuthStore.getState().setSession("doctor");
 
       toast.success("Account created. Complete your onboarding profile.");
-      const route = await resolveDoctorPostAuthRoute();
+      const route = seedDoctorPostAuthCacheFromLogin(
+        queryClient,
+        login.doctor,
+        login.onboarding_status,
+      );
       router.replace(route);
     } catch (error) {
       const apiError = error as ApiError;

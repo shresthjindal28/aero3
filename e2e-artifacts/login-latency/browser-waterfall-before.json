@@ -1,0 +1,22 @@
+{
+  "samples": 3,
+  "measuredAt": "2026-06-14T15:15:55.099Z",
+  "environment": "localhost:3000 → localhost:8000 → Neon Postgres",
+  "loginClickToDashboard": {
+    "p50": 8439,
+    "p95": 10681,
+    "p99": 10681,
+    "values": [10681, 8313, 8439]
+  },
+  "phases": {
+    "loginClickToLoginApiEnd": { "p50": 6257, "p95": 6331, "p99": 6331, "values": [6257, 6154, 6331] },
+    "loginApiEndToPostAuthEnd": { "p50": 1242, "p95": 2516, "p99": 2516, "values": [2516, 1263, 1242] },
+    "postAuthEndToDashboardUrl": { "p50": 77, "p95": 1578, "p99": 1578, "values": [1578, 77, 63] },
+    "dashboardUrlToContent": { "p50": 803, "p95": 819, "p99": 819, "values": [330, 819, 803] }
+  },
+  "apiEndpoints": {
+    "POST /api/v1/doctors/login": { "p50": 6131, "p95": 6221, "p99": 6221, "samples": [6131, 6038, 6221] },
+    "GET /api/v1/doctors/me": { "p50": 835, "p95": 838, "p99": 838, "samples": [838, 835, 820] },
+    "GET /api/v1/doctors/me/onboarding-status": { "p50": 1260, "p95": 2513, "p99": 2513, "samples": [2513, 1260, 1236] }
+  }
+}

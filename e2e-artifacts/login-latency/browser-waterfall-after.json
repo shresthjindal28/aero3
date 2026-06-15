@@ -1,0 +1,173 @@
+{
+  "samples": 3,
+  "measuredAt": "2026-06-14T15:27:34.247Z",
+  "environment": "localhost:3000 → localhost:8000 → Neon Postgres",
+  "loginClickToDashboard": {
+    "p50": 4451,
+    "p95": 4451,
+    "p99": 4451,
+    "values": [
+      6830,
+      4451,
+      3877
+    ]
+  },
+  "phases": {
+    "loginClickToLoginApiEnd": {
+      "p50": 3573,
+      "p95": 3573,
+      "p99": 3573,
+      "values": [
+        3695,
+        3573,
+        3492
+      ]
+    },
+    "loginApiEndToPostAuthEnd": {
+      "p50": 0,
+      "p95": 0,
+      "p99": 0,
+      "values": [
+        0,
+        0,
+        0
+      ]
+    },
+    "postAuthEndToDashboardUrl": {
+      "p50": 74,
+      "p95": 74,
+      "p99": 74,
+      "values": [
+        2806,
+        74,
+        64
+      ]
+    },
+    "dashboardUrlToContent": {
+      "p50": 329,
+      "p95": 329,
+      "p99": 329,
+      "values": [
+        329,
+        804,
+        321
+      ]
+    }
+  },
+  "apiEndpoints": {
+    "POST /api/v1/doctors/login": {
+      "p50": 3453,
+      "p95": 3453,
+      "p99": 3453,
+      "samples": [
+        3492,
+        3453,
+        3371
+      ]
+    },
+    "GET /api/v1/patients": {
+      "p50": 446,
+      "p95": 446,
+      "p99": 446,
+      "samples": [
+        446
+      ]
+    },
+    "GET /api/v1/consultations": {
+      "p50": 446,
+      "p95": 446,
+      "p99": 446,
+      "samples": [
+        446
+      ]
+    }
+  },
+  "avgNavigationTiming": {
+    "ttfbMs": 1733.3333333333333,
+    "domContentLoadedMs": 1856.733333333085
+  },
+  "runs": [
+    {
+      "loginClickToDashboardMs": 6830,
+      "loginClickToLoginApiEndMs": 3695,
+      "loginApiEndToPostAuthEndMs": 0,
+      "postAuthEndToDashboardUrlMs": 2806,
+      "dashboardUrlToContentMs": 329,
+      "apiEvents": [
+        {
+          "url": "/api/v1/doctors/login",
+          "method": "POST",
+          "startMs": 6598,
+          "endMs": 10090,
+          "durationMs": 3492,
+          "status": 200
+        }
+      ],
+      "navigationTiming": {
+        "ttfbMs": 4726,
+        "domContentLoadedMs": 4955.5,
+        "loadMs": 5757.800000000745
+      }
+    },
+    {
+      "loginClickToDashboardMs": 4451,
+      "loginClickToLoginApiEndMs": 3573,
+      "loginApiEndToPostAuthEndMs": 0,
+      "postAuthEndToDashboardUrlMs": 74,
+      "dashboardUrlToContentMs": 804,
+      "apiEvents": [
+        {
+          "url": "/api/v1/doctors/login",
+          "method": "POST",
+          "startMs": 1732,
+          "endMs": 5185,
+          "durationMs": 3453,
+          "status": 200
+        },
+        {
+          "url": "/api/v1/patients",
+          "method": "GET",
+          "startMs": 5568,
+          "endMs": 6014,
+          "durationMs": 446,
+          "status": 307
+        },
+        {
+          "url": "/api/v1/consultations",
+          "method": "GET",
+          "startMs": 5568,
+          "endMs": 6014,
+          "durationMs": 446,
+          "status": 307
+        }
+      ],
+      "navigationTiming": {
+        "ttfbMs": 373.5,
+        "domContentLoadedMs": 465,
+        "loadMs": 1013.5
+      }
+    },
+    {
+      "loginClickToDashboardMs": 3877,
+      "loginClickToLoginApiEndMs": 3492,
+      "loginApiEndToPostAuthEndMs": 0,
+      "postAuthEndToDashboardUrlMs": 64,
+      "dashboardUrlToContentMs": 321,
+      "apiEvents": [
+        {
+          "url": "/api/v1/doctors/login",
+          "method": "POST",
+          "startMs": 1368,
+          "endMs": 4739,
+          "durationMs": 3371,
+          "status": 200
+        }
+      ],
+      "navigationTiming": {
+        "ttfbMs": 100.5,
+        "domContentLoadedMs": 149.69999999925494,
+        "loadMs": 652
+      }
+    }
+  ]
+}

@@ -8,7 +8,7 @@ import { AuthFormField } from "@/features/auth/components/auth-form-field";
 import { AuthInput } from "@/features/auth/components/auth-input";
 import { AuthSubmitButton } from "@/features/auth/components/auth-submit-button";
 import { useDoctorLogin } from "@/features/auth/hooks/use-doctor-auth";
-import { seedDoctorPostAuthCache } from "@/features/auth/utils/doctor-route-resolver";
+import { seedDoctorPostAuthCacheFromLogin } from "@/features/auth/utils/doctor-route-resolver";
 import {
   loginSchema,
   type LoginFormValues,
@@ -26,9 +26,13 @@ export function DoctorLoginForm() {
 
   const onSubmit = form.handleSubmit(async (values) => {
     try {
-      await loginMutation.mutateAsync(values);
+      const login = await loginMutation.mutateAsync(values);
       toast.success("Welcome back");
-      const route = await seedDoctorPostAuthCache(queryClient);
+      const route = seedDoctorPostAuthCacheFromLogin(
+        queryClient,
+        login.doctor,
+        login.onboarding_status,
+      );
       router.replace(route);
     } catch (error) {
       const apiError = error as ApiError;
