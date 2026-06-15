@@ -1,6 +1,6 @@
 export const sessionConfig = {
-  chunkDurationMs: 5_000,
-  maxConcurrentUploads: 2,
+  chunkDurationMs: 2_000,
+  maxConcurrentUploads: 3,
   maxUploadRetries: 5,
   retryBaseDelayMs: 1_000,
   transcriptBufferCapacity: 500,
